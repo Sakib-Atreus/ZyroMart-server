@@ -14,7 +14,7 @@ This ZyroMart E-commerce Management API is built with Express and TypeScript, in
 
 ## Features
 
-### 1. ZyroMart E-Commerce Management
+### 1. Product Management
 
 - **Create a New Product** 
 - **GET All Products** 
@@ -46,7 +46,7 @@ Make sure you have the following installed on your machine:
 ### 📂 Clone the Repository
 
 ```bash
-git clone https://github.com/Sakib-Atreus/Product-Management-Server-A2
+git clone https://github.com/Sakib-Atreus/ZyroMart-server
 cd ZyroMart-server
 ```
 
