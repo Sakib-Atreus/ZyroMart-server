@@ -55,7 +55,7 @@ const getAllProducts = async (req: Request, res: Response) => {
     if (!result || result.length === 0) {
       return res
         .status(404)
-        .json({ success: false, message: 'Product not found' });
+        .json({ success: false, message: 'Product not found!' });
     }
 
     // If no search term is provided, return all products
@@ -92,7 +92,7 @@ const getSingleProduct = async (req: Request, res: Response) => {
       // If the product is not found, return a 404 status code
       return res
         .status(404)
-        .json({ success: false, message: 'Product not found' });
+        .json({ success: false, message: 'Product not found!' });
     }
 
     res.status(200).json({
@@ -104,7 +104,7 @@ const getSingleProduct = async (req: Request, res: Response) => {
     // If an error occurs, return a 500 status code
     res.status(500).json({
       success: false,
-      message: 'Product not found',
+      message: 'Product not found!',
     });
   }
 };
