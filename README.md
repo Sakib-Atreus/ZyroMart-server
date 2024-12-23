@@ -1,4 +1,4 @@
-# [![Typing SVG](https://readme-typing-svg.herokuapp.com?font=Fira+Code&weight=500&size=33&pause=1000&color=F07025&width=435&lines=ZyroMart+E-Commerce+App;Server+Application;)](https://git.io/typing-svg)
+# [![Typing SVG](https://readme-typing-svg.herokuapp.com?font=Fira+Code&weight=500&size=33&pause=1000&color=F07025&width=435&lines=ZyroMart+eCommerce+App;Server+Application;)](https://git.io/typing-svg)
 
 ## Introduction
 
