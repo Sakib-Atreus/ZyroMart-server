@@ -24,7 +24,7 @@ const createProduct = async (req: Request, res: Response) => {
   } catch (err: any) {
     res.status(500).json({
       success: false,
-      message: err.message || 'Something went wrong',
+      message: err.message || 'Something went wrong!!!',
       err,
     });
   }
@@ -76,7 +76,7 @@ const getAllProducts = async (req: Request, res: Response) => {
   } catch (error: any) {
     res.status(500).json({
       success: false,
-      message: error.message || 'Something went wrong',
+      message: error.message || 'Something went wrong!!!',
       error,
     });
   }
@@ -157,7 +157,7 @@ const updateProduct = async (req: Request, res: Response) => {
         .status(200)
         .json({ success: true, message: 'Product updated successfully!', product: result });
     } else {
-      res.status(404).json({ message: 'Product not found' });
+      res.status(404).json({ message: 'Product not found!' });
     }
   } catch (err: any) {
     if (err instanceof ZodError) {
@@ -165,7 +165,7 @@ const updateProduct = async (req: Request, res: Response) => {
       res.status(400).json({ message: 'Validation error', errors: err.errors });
     } else {
       res.status(500).json({
-        message: 'An error occurred while updating the product',
+        message: 'An error occurred while updating the product!',
         error: err.message,
       });
     }
