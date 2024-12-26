@@ -48,7 +48,7 @@ const productValidationSchema = z.object({
   tags: z.array(
     z
       .string()
-      .min(3, { message: 'Each tag must be at least 3 characters long.' })
+      .min(2, { message: 'Each tag must be at least 3 characters long.' })
       .max(20, { message: 'Each tag must be at most 20 characters long.' }),
   ),
   variants: z
