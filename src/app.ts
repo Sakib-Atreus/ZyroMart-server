@@ -1,7 +1,8 @@
 import cors from 'cors';
 import express, { Application, Request, Response } from 'express';
-import { ProductRoute } from './app/modules/products/product.route';
-import { OrderRoute } from './app/modules/orders/order.route';
+import { routes } from './app/routes';
+import globalErrorHandler from './app/middleware/globalErrorHandler';
+import notFound from './app/middleware/notFoundRoute';
 
 const app: Application = express();
 
@@ -9,9 +10,11 @@ const app: Application = express();
 app.use(express.json());
 app.use(cors());
 
+app.use('/', routes)
+
 // application routes
-app.use('/api/products', ProductRoute);
-app.use('/api/orders', OrderRoute);
+// app.use('/api/products', ProductRoute);
+// app.use('/api/orders', OrderRoute);
 
 // server
 const getAController = (req: Request, res: Response) => {
@@ -22,11 +25,15 @@ const getAController = (req: Request, res: Response) => {
 app.get('/', getAController);
 
 // Handle other or false route and return a 404 error
-app.use('*', (req: Request, res: Response) => {
-  res.status(404).json({
-    success: false,
-    message: 'Route not found!',
-  });
-});
+// app.use('*', (req: Request, res: Response) => {
+//   res.status(404).json({
+//     success: false,
+//     message: 'Route not found!',
+//   });
+// });
+
+// customize error
+app.use(globalErrorHandler)
+app.use(notFound)
 
 export default app;
