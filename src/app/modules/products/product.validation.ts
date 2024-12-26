@@ -39,7 +39,7 @@ const productValidationSchema = z.object({
   price: z
     .number()
     .min(1, { message: 'Price must be at least 1.' })
-    .max(9999, { message: 'Price must be at most 9999.' })
+    .max(999999, { message: 'Price must be at most 999999.' })
     .nonnegative({ message: 'Price must be a positive number.' }),
   category: z
     .string()
