@@ -28,6 +28,19 @@ const createOrderIntoDB = async (order: Order) => {
     throw new Error('Insufficient quantity available in inventory');
   }
 
+  // check if the total price matches the product price multiplied by quantity
+  /* const isCorrectPrice = order.price === product.price * order.quantity;
+
+  if (!isCorrectPrice) {
+    throw new Error('The total price is incorrect');
+  }
+
+  const isTotalPrice = order.price <= product.price * order.quantity;
+
+  if (!isTotalPrice) {
+    throw new Error('The total price exceeds the allowed amount');
+  } */
+
   // create order
   const result = await OrderModel.create(order);
 

@@ -10,7 +10,7 @@ const orderValidationSchema = z.object({
   price: z
     .number()
     .min(1, { message: 'Price must be at least 1' })
-    .max(9999, { message: 'Price cannot exceed 99999' }),
+    .max(999999, { message: 'Price cannot exceed 999999' }),
   quantity: z
     .number()
     .min(1, { message: 'Quantity must be at least 1' })
