@@ -23,7 +23,7 @@ const createReview = async (req: Request, res: Response) => {
     if (err instanceof ZodError) {
       res.status(400).json({
         success: false,
-        message: 'Validation error',
+        message: 'Validation error!',
         errors: err.errors,
       });
     } else {
@@ -153,7 +153,7 @@ const updateReview = async (req: Request, res: Response) => {
     if (err instanceof ZodError) {
       res.status(400).json({
         success: false,
-        message: 'Validation error',
+        message: 'Validation error!',
         errors: err.errors,
       });
     } else {
