@@ -33,9 +33,9 @@ const updateReviewFromDB = async (_id: string, updateData: Partial<Review>) => {
       runValidators: true, // Ensure validations are applied
     }).exec();
     return result;
-  } catch (error) {
-    console.error(`Failed to update review with id ${_id}:`, error);
-    throw error; // Propagate the error for higher-level handling
+  } catch (error : any) {
+    // console.error(`Failed to update review with id ${_id}:`, error);
+    throw error("Failed to update review with id!"); // Propagate the error for higher-level handling
   }
 };
 
