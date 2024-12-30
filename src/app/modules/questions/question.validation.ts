@@ -4,13 +4,13 @@ import { z } from "zod";
 const questionValidationSchema = z.object({
   productId: z.string().nonempty("Product ID is required"),
   userId: z.string().nonempty("User ID is required"),
-  question: z.string().min(5, "Question must be at least 5 characters long"),
+  question: z.string().min(5, "Question must be at least 3 characters long"),
   createdAt: z.date().default(() => new Date()),
 });
 
 // Schema for answering a question (only admin)
 const answerQuestionValidationSchema = z.object({
-  answer: z.string().min(1, "Answer cannot be empty"),
+  answer: z.string().min(1, "Answer cannot be empty!"),
 });
 
 // making the entire product schema optional
