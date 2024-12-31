@@ -2,9 +2,9 @@ import { z } from "zod";
 
 // Schema for creating a question
 const questionValidationSchema = z.object({
-  productId: z.string().nonempty("Product ID is required"),
-  userId: z.string().nonempty("User ID is required"),
-  question: z.string().min(5, "Question must be at least 3 characters long"),
+  productId: z.string().nonempty("Product ID is required!"),
+  userId: z.string().nonempty("User ID is required!"),
+  question: z.string().min(5, "Question must be at least 3 characters long!"),
   createdAt: z.date().default(() => new Date()),
 });
 
