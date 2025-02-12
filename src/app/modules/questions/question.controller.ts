@@ -53,7 +53,7 @@ const getAllQuestions = async (req: Request, res: Response) => {
   // Controller to get a single question by ID
 const getSingleQuestion = async (req: Request, res: Response) => {
     try {
-      const { questionId } = req.params;  // Use 'questionId' to match the route parameter
+      const { questionId } = req.params; 
       const result = await QuestionService.getSingleQuestion(questionId);
   
       if (!result) {

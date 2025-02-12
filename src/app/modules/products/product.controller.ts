@@ -30,6 +30,28 @@ const createProduct = async (req: Request, res: Response) => {
   }
 };
 
+// use catchAsync and sendResponse
+/*
+const createProduct = catchAsync(async (req: Request, res: Response) => {
+  const productData = req.body;
+  const parsedProductData = productValidationSchema.parse(productData);
+
+  // Call service function to create the product
+  const result = await ProductServices.createProductIntoDB(parsedProductData);
+
+  // Send response using sendResponse utility
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'Product created successfully!',
+    data: result,
+  });
+});
+
+export default createProduct;
+
+*/
+
 // this control handle to get all products
 const getAllProducts = async (req: Request, res: Response) => {
   try {
