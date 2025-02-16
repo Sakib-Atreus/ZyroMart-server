@@ -40,7 +40,7 @@ const updateProductFromDB = async (
     return result;
   } catch (error) {
     console.error(`Failed to update product with id ${_id}:`, error);
-    throw error; // Propagate the error for higher-level handling
+    throw error;
   }
 };
 
