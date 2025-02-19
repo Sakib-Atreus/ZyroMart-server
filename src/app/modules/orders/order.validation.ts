@@ -18,6 +18,4 @@ const orderValidationSchema = z.object({
 });
 
 // we can export this validation model for using another file
-export const OrderValidations = { 
-  orderValidationSchema
-};
+export default orderValidationSchema;
