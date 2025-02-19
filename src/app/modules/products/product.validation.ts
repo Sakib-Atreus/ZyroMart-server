@@ -61,4 +61,7 @@ const productValidationSchema = z.object({
 const partialProductValidationSchema = productValidationSchema.partial();
 
 // export this validation schema for using another file
-export { productValidationSchema, partialProductValidationSchema };
+export const ProductValidations = { 
+  productValidationSchema, 
+  partialProductValidationSchema 
+};
