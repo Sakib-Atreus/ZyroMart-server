@@ -10,7 +10,7 @@ const app: Application = express();
 app.use(express.json());
 app.use(cors());
 
-app.use('/', routes)
+app.use('/api/v1', routes)
 
 // application routes
 // app.use('/api/products', ProductRoute);
