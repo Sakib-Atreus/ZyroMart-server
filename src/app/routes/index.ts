@@ -9,7 +9,7 @@ const router = Router()
 
 const moduleRoutes = [
   {
-    path: '/api/auth',
+    path: '/auth',
     route: AuthRoutes,
   },
   {
