@@ -12,10 +12,6 @@ app.use(cors());
 
 app.use('/api/v1', routes)
 
-// application routes
-// app.use('/api/products', ProductRoute);
-// app.use('/api/orders', OrderRoute);
-
 // server
 const getAController = (req: Request, res: Response) => {
   res.send('Welcome to our ZyroMart E-commerce server management application!');
@@ -23,14 +19,6 @@ const getAController = (req: Request, res: Response) => {
 
 // main server
 app.get('/', getAController);
-
-// Handle other or false route and return a 404 error
-// app.use('*', (req: Request, res: Response) => {
-//   res.status(404).json({
-//     success: false,
-//     message: 'Route not found!',
-//   });
-// });
 
 // customize error
 app.use(globalErrorHandler)
