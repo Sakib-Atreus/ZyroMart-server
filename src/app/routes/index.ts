@@ -21,11 +21,11 @@ const moduleRoutes = [
     route: OrderRoute,
   },
   {
-    path: '/api/reviews',
+    path: '/reviews',
     route: ReviewRoute,
   },
   {
-    path: '/api/questions',
+    path: '/questions',
     route: QuestionRoute,
   },
 ]
