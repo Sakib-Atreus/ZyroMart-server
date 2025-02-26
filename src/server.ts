@@ -5,6 +5,7 @@ import app from './app';
 async function main() {
   try {
     await mongoose.connect(config.db_url as string);
+    console.log("Database connected successfully... ✅");
 
     app.listen(config.port, () => {
       console.log(`ZyroMart E-commerce management server app listening on port ${config.port}`);
