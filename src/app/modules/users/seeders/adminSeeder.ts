@@ -19,7 +19,7 @@ const adminSeeder = async () => {
         const createAdmin = AuthServices.registeredUserIntoDB(admin)
         if(!createAdmin)
         {
-            throw Error ("admin coudn't be created")
+            throw Error ("Admin couldn't be created!")
         }
     }
 }
