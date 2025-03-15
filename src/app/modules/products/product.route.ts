@@ -1,7 +1,7 @@
 import express from 'express';
 import { ProductControllers } from './product.controller';
 import auth from '../../middleware/auth';
-import { USER_ROLE } from '../user/user.constant';
+import { USER_ROLE } from '../users/user.constant';
 
 const router = express.Router();
 
@@ -16,9 +16,17 @@ router.get('/', ProductControllers.getAllProducts);
 router.get('/:productId', ProductControllers.getSingleProduct);
 
 // delete a single product
-router.delete('/:productId', auth(USER_ROLE.admin), ProductControllers.deleteProduct);
+router.delete(
+  '/:productId',
+  auth(USER_ROLE.admin),
+  ProductControllers.deleteProduct,
+);
 
 // update a single product
-router.put('/:productId', auth(USER_ROLE.admin), ProductControllers.updateProduct);
+router.put(
+  '/:productId',
+  auth(USER_ROLE.admin),
+  ProductControllers.updateProduct,
+);
 
 export const ProductRoute = router;
