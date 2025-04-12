@@ -13,7 +13,7 @@ const reviewValidationSchema = z.object({
         .min(1, "Rating must be at least 1")
         .max(5, "Rating must not exceed 5"),
     comment: z.string().nonempty("Comment is required!"),
-    createdAt: z.date().default(() => new Date()), // Defaults to the current date if not provided
+    createdAt: z.date().default(() => new Date()), // current date
 });
 
 // making the entire review schema optional
