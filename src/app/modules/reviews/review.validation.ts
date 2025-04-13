@@ -19,5 +19,5 @@ const reviewValidationSchema = z.object({
 // making the entire review schema optional
 const partialReviewValidationSchema = reviewValidationSchema.partial();
 
-// export this validation schema for using another file
+// export validation schema
 export { reviewValidationSchema, partialReviewValidationSchema };
