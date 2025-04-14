@@ -1,64 +1,83 @@
 import { z } from 'zod';
 
-// validation schema for variant model
 const variantValidationSchema = z.object({
-  type: z
-    .string()
-    .min(3, { message: 'Variant type must be at least 3 characters.' })
+  type: z.string({
+    required_error: 'Variant type is required.',
+  }).min(3, { message: 'Variant type must be at least 3 characters.' })
     .max(20, { message: 'Variant type must be at most 20 characters long.' }),
-  value: z
-    .string()
-    .min(1, { message: 'Variant value must be at least 1 character.' })
+
+  value: z.string({
+    required_error: 'Variant value is required.',
+  }).min(1, { message: 'Variant value must be at least 1 character.' })
     .max(20, { message: 'Variant value must be at most 20 characters long.' }),
+
+  price: z.number({
+    required_error: 'Product price is required.',
+  }).min(1, { message: 'Price must be at least 1.' })
+    .max(999999, { message: 'Price must be at most 999999.' }),
+
+  sku: z.string({
+    required_error: 'Variant SKU is required.',
+  }).min(3, { message: 'SKU must be at least 3 characters long.' })
+    .max(30, { message: 'SKU must be at most 30 characters long.' }),
+
+  image: z.array(z.string({
+    required_error: 'Variant image is required.',
+  }).url({ message: 'Each image must be a valid URL.' }))
+    .min(1, { message: 'At least one image is required.' }),
+
+  stock: z.number({
+    required_error: 'Variant stock is required.',
+  }).min(0, { message: 'Variant stock cannot be less than 0.' }),
 });
 
-// validation schema for inventory model
 const inventoryValidationSchema = z.object({
-  quantity: z
-    .number()
-    .min(0, { message: 'Quantity cannot be less than 0.' })
-    .max(999, { message: 'Quantity cannot be more than 999.' })
-    .nonnegative({ message: 'Quantity must be a non-negative number.' }),
-  inStock: z.boolean({ required_error: 'In-stock status is required.' }),
+  quantity: z.number({
+    required_error: 'Inventory quantity is required.',
+  }).min(0, { message: 'Quantity cannot be less than 0.' })
+    .max(999, { message: 'Quantity cannot be more than 999.' }),
+
+  inStock: z.boolean({
+    required_error: 'In-stock status is required.',
+  }),
 });
 
-// validation schema for product model
 const productValidationSchema = z.object({
-  name: z
-    .string()
-    .min(3, { message: 'Product name must be at least 3 characters.' })
+  name: z.string({
+    required_error: 'Product name is required.',
+  }).min(3, { message: 'Product name must be at least 3 characters.' })
     .max(100, { message: 'Product name must be at most 100 characters long.' }),
-  description: z
-    .string()
-    .min(10, {
-      message: 'Product description must be at least 10 characters.',
-    })
-    .max(500, {
-      message: 'Product description must be at most 500 characters long.',
-    }),
-  price: z
-    .number()
-    .min(1, { message: 'Price must be at least 1.' })
-    .max(999999, { message: 'Price must be at most 999999.' })
-    .nonnegative({ message: 'Price must be a positive number.' }),
-  category: z
-    .string()
-    .min(3, { message: 'Category must be at least 3 characters long.' })
-    .max(20, { message: 'Category must be at most 20 characters long.' }),
-  tags: z.array(
-    z
-      .string()
-      .min(2, { message: 'Each tag must be at least 3 characters long.' })
-      .max(20, { message: 'Each tag must be at most 20 characters long.' }),
-  ),
-  variants: z
-    .array(variantValidationSchema)
-    .nonempty({ message: 'At least one variant is required.' }),
+
+  description: z.string({
+    required_error: 'Product description is required.',
+  }).min(10, { message: 'Product description must be at least 10 characters.' })
+    .max(500, { message: 'Product description must be at most 500 characters long.' }),
+
+  // category: z.string({
+  //   required_error: 'Product category is required.',
+  // }).min(3, { message: 'Category must be at least 3 characters long.' })
+  //   .max(20, { message: 'Category must be at most 20 characters long.' }),
+  category: z.enum(['Mobile', 'Laptop', 'Headphone', 'Power Bank'], {
+    required_error: 'Product category is required.',
+  }),
+
+  brand: z.string({
+    required_error: 'Product brand is required.',
+  }).min(2, { message: 'Brand must be at least 2 characters long.' })
+    .max(30, { message: 'Brand must be at most 30 characters long.' }),
+
+  tags: z.array(z.string({
+    required_error: 'Tag is required.',
+  }).min(2, { message: 'Each tag must be at least 2 characters long.' })
+    .max(20, { message: 'Each tag must be at most 20 characters long.' })),
+
+  variants: z.array(variantValidationSchema, {
+    required_error: 'At least one variant is required.',
+  }).nonempty({ message: 'At least one variant is required.' }),
+
   inventory: inventoryValidationSchema,
 });
 
-// making the entire product schema optional
 const partialProductValidationSchema = productValidationSchema.partial();
 
-// export this validation schema for using another file
 export { productValidationSchema, partialProductValidationSchema };
