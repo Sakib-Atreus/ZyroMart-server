@@ -56,7 +56,7 @@ const productSchema = new Schema<Product>(
     },
     category: {
       type: String,
-      enum: ['Mobile', 'Laptop', 'Headphone', 'Power Bank'], // ✅ enum here
+      enum: ['Mobile', 'Laptop', 'Headphone', 'Power Bank'],
       required: [true, 'Product category is required'],
     },
     brand: {
