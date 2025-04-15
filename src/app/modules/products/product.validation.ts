@@ -57,6 +57,7 @@ const productValidationSchema = z.object({
   //   required_error: 'Product category is required.',
   // }).min(3, { message: 'Category must be at least 3 characters long.' })
   //   .max(20, { message: 'Category must be at most 20 characters long.' }),
+  
   category: z.enum(['Mobile', 'Laptop', 'Headphone', 'Power Bank'], {
     required_error: 'Product category is required.',
   }),
