@@ -113,4 +113,6 @@ const productSchema = new Schema<Product>({
   variants: [variantSchema],
 });
 
-export const ProductModel = mongoose.model<Product & Document>('Product', productSchema);
+const ProductModel = mongoose.model<Product & Document>('Product', productSchema);
+
+export { ProductModel };
