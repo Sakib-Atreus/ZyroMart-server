@@ -67,7 +67,7 @@ const createProductIntoDB = async (product: Product) => {
 };
 
 // Get all products from the database with optional search filtering
-const getAllProductsFromDB = async (searchTerm: object): Promise<Product[] | null> => {
+const getAllProductsFromDB = async (searchTerm: object = {}): Promise<Product[] | null> => {
   const result = await ProductModel.find(searchTerm).populate('variants');
   return result;
 };
