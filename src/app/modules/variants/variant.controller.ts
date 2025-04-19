@@ -1,41 +1,54 @@
 import { Request, Response } from 'express';
 import { VariantServices } from './variant.service';
-import { VariantOptions, Variant } from './variant.interface';
+import { VariantOptions } from './variant.interface';
 import { ZodError } from 'zod';
-import { variantValidationSchema } from './variant.validation';
+import { ProductModel } from '../products/product.model';
 
 // Create a new variant
 const createVariant = async (req: Request, res: Response) => {
-    try {
-      const variantData = req.body;
-      
-      // Validate the variant data using the full schema
-      const parsedVariantData = variantValidationSchema.parse(variantData);
-      
-      // Continue with the service call if the validation passes
-      const result = await VariantServices.createVariantIntoDB(parsedVariantData);
-      
-      res.status(200).json({
-        success: true,
-        message: 'Variant created successfully!',
-        data: result,
+  try {
+    const variantData = req.body;
+
+    // Optional: Validate the variant data
+    // const parsedVariantData = variantValidationSchema.parse(variantData);
+
+    // Step 1: Create the variant
+    const createdVariant = await VariantServices.createVariantIntoDB(variantData);
+
+    // Step 2: Push variant _id into product's variants array
+    // await ProductModel.findByIdAndUpdate(
+    //   variantData.productId,
+    //   { $push: { variants: createdVariant._id } },
+    //   { new: true }
+    // );
+    const updatedProduct = await ProductModel.findByIdAndUpdate(
+      variantData.productId,
+      { $push: { variants: variantData } }, // ✅ Push full object here
+      { new: true }
+    );
+
+    // Send response
+    res.status(200).json({
+      success: true,
+      message: 'Variant created successfully!',
+      data: createdVariant,
+    });
+  } catch (err: any) {
+    if (err instanceof ZodError) {
+      res.status(400).json({
+        success: false,
+        message: 'Validation error',
+        errors: err.errors,
       });
-    } catch (err: any) {
-      if (err instanceof ZodError) {
-        res.status(400).json({
-          success: false,
-          message: 'Validation error',
-          errors: err.errors,
-        });
-      } else {
-        res.status(500).json({
-          success: false,
-          message: err.message || 'Something went wrong!!!',
-          err,
-        });
-      }
+    } else {
+      res.status(500).json({
+        success: false,
+        message: err.message || 'Something went wrong!!!',
+        err,
+      });
     }
-  };
+  }
+};
 
 // Get all variants
 const getAllVariants = async (req: Request, res: Response) => {

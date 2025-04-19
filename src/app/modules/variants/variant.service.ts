@@ -26,7 +26,7 @@ const deleteVariantFromDB = async (variantId: string) => {
 };
 
 // Update a variant
-const updateVariantFromDB = async (variantId: string, updateData: Partial<VariantOptions>) => {
+const updateVariantFromDB = async (variantId: string, updateData: Partial<Variant>) => {
   const result = await VariantModel.findByIdAndUpdate(variantId, updateData, {
     new: true,
     runValidators: true,

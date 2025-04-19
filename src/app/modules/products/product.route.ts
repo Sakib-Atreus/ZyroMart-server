@@ -40,7 +40,7 @@ import { USER_ROLE } from '../users/user.constant';
 
 const router = express.Router();
 
-router.post('/', auth(USER_ROLE.admin), ProductControllers.createProduct);
+router.post('/', ProductControllers.createProduct);
 router.get('/', ProductControllers.getAllProducts);
 router.get('/:productId', ProductControllers.getSingleProduct);
 router.delete('/:productId', auth(USER_ROLE.admin), ProductControllers.deleteProduct);

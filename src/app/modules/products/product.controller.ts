@@ -206,15 +206,14 @@
 
 import { Request, Response } from 'express';
 import { ProductServices } from './product.service';
-import { productValidationSchema, partialProductValidationSchema } from './product.validation';
 import { ZodError } from 'zod';
 
 const createProduct = async (req: Request, res: Response) => {
   try {
     const productData = req.body;
-    const parsedProductData = productValidationSchema.parse(productData);
+    // const parsedProductData = productValidationSchema.parse(productData);
 
-    const result = await ProductServices.createProductIntoDB(parsedProductData);
+    const result = await ProductServices.createProductIntoDB(productData);
 
     res.status(200).json({
       success: true,
@@ -266,9 +265,9 @@ const updateProduct = async (req: Request, res: Response) => {
   try {
     const { productId } = req.params;
     const updateData = req.body;
-    const parsedProductData = partialProductValidationSchema.parse(updateData);
+    // const parsedProductData = partialProductValidationSchema.parse(updateData);
 
-    const result = await ProductServices.updateProductFromDB(productId, parsedProductData);
+    const result = await ProductServices.updateProductFromDB(productId, updateData);
     if (result) {
       res.status(200).json({ success: true, message: 'Product updated successfully!', product: result });
     } else {

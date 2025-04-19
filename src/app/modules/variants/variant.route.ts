@@ -6,7 +6,7 @@ import { USER_ROLE } from '../users/user.constant';
 const router = express.Router();
 
 // Create a new variant
-router.post('/', auth(USER_ROLE.admin), VariantControllers.createVariant);
+router.post('/', VariantControllers.createVariant);
 
 // Get all variants
 router.get('/', VariantControllers.getAllVariants);

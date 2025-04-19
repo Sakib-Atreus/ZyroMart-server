@@ -4,6 +4,7 @@ import { ProductRoute } from '../modules/products/product.route'
 import { OrderRoute } from '../modules/orders/order.route'
 import { ReviewRoute } from '../modules/reviews/review.route'
 import { QuestionRoute } from '../modules/questions/question.route'
+import { VariantRoute } from '../modules/variants/variant.route'
 
 const router = Router()
 
@@ -15,6 +16,10 @@ const moduleRoutes = [
   {
     path: '/products',
     route: ProductRoute,
+  },
+  {
+    path: '/variants',
+    route: VariantRoute,
   },
   {
     path: '/orders',

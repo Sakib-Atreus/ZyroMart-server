@@ -85,7 +85,7 @@
 
 
 
-import mongoose, { Schema, Document } from 'mongoose';
+import mongoose, { Schema} from 'mongoose';
 import { Product } from './product.interface';
 
 const variantSchema = new Schema({
@@ -110,9 +110,10 @@ const productSchema = new Schema<Product>({
   category: { type: String, enum: ['phone', 'laptop', 'headphone'], required: true },
   brand: { type: String, required: true },
   tags: [{ type: String }],
+  // variants: [{ type: Schema.Types.ObjectId, ref: 'Variant' }],
   variants: [variantSchema],
 });
 
-const ProductModel = mongoose.model<Product & Document>('Product', productSchema);
+const ProductModel = mongoose.model<Product>('Product', productSchema);
 
 export { ProductModel };
