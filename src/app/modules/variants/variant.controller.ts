@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { VariantServices } from './variant.service';
-import { VariantOptions } from './variant.interface';
+import { Variant } from './variant.interface';
 import { ZodError } from 'zod';
 import { ProductModel } from '../products/product.model';
 
@@ -21,7 +21,7 @@ const createVariant = async (req: Request, res: Response) => {
     //   { $push: { variants: createdVariant._id } },
     //   { new: true }
     // );
-    const updatedProduct = await ProductModel.findByIdAndUpdate(
+    await ProductModel.findByIdAndUpdate(
       variantData.productId,
       { $push: { variants: variantData } }, // ✅ Push full object here
       { new: true }
@@ -136,7 +136,8 @@ const deleteVariant = async (req: Request, res: Response) => {
 const updateVariant = async (req: Request, res: Response) => {
   try {
     const { variantId } = req.params;
-    const updateData: VariantOptions = req.body;
+    // const updateData: VariantOptions = req.body;
+    const updateData: Partial<Variant> = req.body; // Assuming you have a validation schema for this
 
     const result = await VariantServices.updateVariantFromDB(variantId, updateData);
 
