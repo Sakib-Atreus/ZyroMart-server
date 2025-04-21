@@ -3,7 +3,7 @@ import { Variant } from './variant.interface';
 
 const variantSchema: Schema = new Schema<Variant>({
   productId: { type: Schema.Types.ObjectId, ref: 'Product', required: true },
-  options: {
+  variantOptions: {
     type: Map,
     of: String,
     required: true,

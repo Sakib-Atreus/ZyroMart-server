@@ -10,7 +10,7 @@ export type VariantOptions = {
 
 export type Variant = {
     productId: Types.ObjectId; // Reference to Product
-    options: VariantOptions;
+    variantOptions: VariantOptions;
     price: number;
     quantity: number;
     inStock: boolean;

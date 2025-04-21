@@ -90,7 +90,7 @@ import { Product } from './product.interface';
 
 const variantSchema = new Schema({
   productId: { type: Schema.Types.ObjectId, ref: 'Product' },
-  options: {
+  variantOptions: {
     color: { type: String },
     ram: { type: String },
     storage: { type: String },
