@@ -87,6 +87,27 @@
 
 import { z } from 'zod';
 
+export const categoryOptions = [
+  'Phone',
+  'Power-Bank',
+  'Speakers',
+  'Camera-Gimbal',
+  'Cases-Protector',
+  'Cable-Adapter',
+  'iPad',
+  'Headset',
+  'Car-Accessories',
+  'Wearables',
+  'Mac',
+  'Video-Games',
+  'Earbuds',
+  'Airpods',
+  'Tablets',
+  'Others'
+] as const;
+
+export const categoryEnum = z.enum(categoryOptions);
+
 export const variantValidationSchema = z.object({
   options: z.object({
     color: z.string().optional(),
@@ -105,7 +126,8 @@ export const productValidationSchema = z.object({
   name: z.string().min(1),
   description: z.string().min(1),
   images: z.array(z.string().url()),
-  category: z.enum(['phone', 'laptop', 'headphone']),
+  // category: z.enum(['phone', 'laptop', 'headphone']),
+  category: categoryEnum,
   brand: z.string().min(1),
   tags: z.array(z.string().min(1)),
   variants: z.array(variantValidationSchema),

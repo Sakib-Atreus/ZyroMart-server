@@ -88,6 +88,25 @@
 import mongoose, { Schema} from 'mongoose';
 import { Product } from './product.interface';
 
+export const categoryEnum = [
+  'Phone',
+  'Power-Bank',
+  'Speakers',
+  'Camera-Gimbal',
+  'Cases-Protector',
+  'Cable-Adapter',
+  'iPad',
+  'Headset',
+  'Car-Accessories',
+  'Wearables',
+  'Mac',
+  'Video-Games',
+  'Earbuds',
+  'Airpods',
+  'Tablets',
+  'Others'
+];
+
 const variantSchema = new Schema({
   productId: { type: Schema.Types.ObjectId, ref: 'Product' },
   variantOptions: {
@@ -107,7 +126,8 @@ const productSchema = new Schema<Product>({
   name: { type: String, required: true },
   description: { type: String, required: true },
   images: [{ type: String }],
-  category: { type: String, enum: ['phone', 'laptop', 'headphone'], required: true },
+  // category: { type: String, enum: ['phone', 'laptop', 'headphone'], required: true },
+  category: categoryEnum,
   brand: { type: String, required: true },
   tags: [{ type: String }],
   // variants: [{ type: Schema.Types.ObjectId, ref: 'Variant' }],
