@@ -9,7 +9,7 @@ export type VariantOptions = {
 };
 
 export type Variant = {
-    productId: Types.ObjectId; // Reference to Product
+    productId: Types.ObjectId; // Reference to Product ID
     variantOptions: VariantOptions;
     price: number;
     quantity: number;
