@@ -137,7 +137,7 @@ const updateVariant = async (req: Request, res: Response) => {
   try {
     const { variantId } = req.params;
     // const updateData: VariantOptions = req.body;
-    const updateData: Partial<Variant> = req.body; // Assuming you have a validation schema for this
+    const updateData: Partial<Variant> = req.body;
 
     const result = await VariantServices.updateVariantFromDB(variantId, updateData);
 
