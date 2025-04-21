@@ -37,13 +37,14 @@ import express from 'express';
 import { ProductControllers } from './product.controller';
 import auth from '../../middleware/auth';
 import { USER_ROLE } from '../users/user.constant';
+import { filterMiddleware } from '../../middleware/filterProductMiddleware';
 
 const router = express.Router();
 
 router.post('/', ProductControllers.createProduct);
-router.get('/', ProductControllers.getAllProducts);
+router.get('/', filterMiddleware, ProductControllers.getAllProducts);
 router.get('/:productId', ProductControllers.getSingleProduct);
 router.delete('/:productId', auth(USER_ROLE.admin), ProductControllers.deleteProduct);
-router.put('/:productId', auth(USER_ROLE.admin), ProductControllers.updateProduct);
+router.put('/:productId', ProductControllers.updateProduct);
 
 export const ProductRoute = router;

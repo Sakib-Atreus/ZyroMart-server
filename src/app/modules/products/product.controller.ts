@@ -231,7 +231,8 @@ const createProduct = async (req: Request, res: Response) => {
 
 const getAllProducts = async (req: Request, res: Response) => {
   try {
-    const result = await ProductServices.getAllProductsFromDB();
+    const filterQuery = req.filterQuery;
+    const result = await ProductServices.getAllProductsFromDB(filterQuery);
     res.status(200).json({ success: true, data: result });
   } catch (err: any) {
     res.status(500).json({ success: false, message: err.message || 'Something went wrong!!!' });
