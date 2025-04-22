@@ -37,5 +37,3 @@ export type CategoryType = (typeof categoryOptions)[number];
 //   | 'Earbuds'
 //   | 'AirPods'
 //   | 'Tablets'
-
-//   | 'Others'
