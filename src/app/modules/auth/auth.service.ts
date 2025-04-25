@@ -40,6 +40,7 @@ const loginUser = async (payload: TLoginUser) => {
   const jwtPayload = {
     userEmail: user?.email,
     role: user?.role,
+    id: user?._id.toString(),
   };
   const accessToken = jwt.sign(jwtPayload, config.jwt_access_secret as string, {
     expiresIn: config.jwt_access_expires_in,
@@ -65,15 +66,18 @@ const changePassword = async (email: string, oldPassword: string, newPassword: s
 };
 
 const logOutUser = async (userId: string) => {
+  const user = await User.findById(userId);
+  if (!user) {
+    throw new AppError(404, 'User not found');
+  }
 
-
-  const logoutUser = await User.findOneAndUpdate(
+  await User.findOneAndUpdate(
     { _id: userId},
-    { isLoggedIn: false, loggedOutTime: new Date() },
+    { isLoggedIn: false },
     { new: true },
   );
 
-  return logoutUser;
+  return null;
 };
 
 
