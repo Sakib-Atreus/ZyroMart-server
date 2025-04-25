@@ -27,6 +27,16 @@ const loginUser = async (payload: TLoginUser) => {
   if (!isPasswordMatched) {
     throw new AppError(400, 'Password do not matched!');
   }
+   // Update the user status to logged in and log the login time
+  const updatedUser = await User.findOneAndUpdate(
+    { _id: user._id },
+    { 
+      isLoggedIn: true, 
+      loggedInTime: new Date() 
+    },
+    { new: true }
+  );
+
   const jwtPayload = {
     userEmail: user?.email,
     role: user?.role,
@@ -36,11 +46,40 @@ const loginUser = async (payload: TLoginUser) => {
   });
   return {
     accessToken: `Bearer ${accessToken}`,
-    user,
+    user: updatedUser,
   };
 };
+
+const changePassword = async (email: string, oldPassword: string, newPassword: string) => {
+  const user = await User.findOne({ email }).select('+password');
+  if (!user) throw new AppError(404, 'User not found');
+
+  const isPasswordMatched = await bcrypt.compare(oldPassword, user.password);
+  if (!isPasswordMatched) throw new AppError(400, 'Old password is incorrect');
+
+  const hashedPassword = await bcrypt.hash(newPassword, 10);
+  user.password = hashedPassword;
+  await user.save();
+
+  return { message: 'Password updated successfully' };
+};
+
+const logOutUser = async (userId: string) => {
+
+
+  const logoutUser = await User.findOneAndUpdate(
+    { _id: userId},
+    { isLoggedIn: false, loggedOutTime: new Date() },
+    { new: true },
+  );
+
+  return logoutUser;
+};
+
 
 export const AuthServices = {
   registeredUserIntoDB,
   loginUser,
+  changePassword,
+  logOutUser
 };

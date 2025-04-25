@@ -1,9 +1,9 @@
 /* eslint-disable no-delete-var */
-import { model, Schema } from 'mongoose'
-import { TUser } from './user.interface'
-import { nameEnum } from './user.constant'
-import bcrypt from 'bcrypt'
-import config from '../../config'
+import { model, Schema } from 'mongoose';
+import { TUser } from './user.interface';
+import { nameEnum } from './user.constant';
+import bcrypt from 'bcrypt';
+import config from '../../config';
 
 const userSchema = new Schema<TUser>(
   {
@@ -35,23 +35,26 @@ const userSchema = new Schema<TUser>(
       type: String,
       required: true,
     },
+    isDeleted: { type: Boolean, default: false },
+    isLoggedIn: { type: Boolean, default: false },
+    loggedOutTime: { type: Date },
   },
   { timestamps: true },
-)
+);
 
 userSchema.pre('save', async function (next) {
   this.password = await bcrypt.hash(
     this.password,
     Number(config.bcrypt_salt_rounds),
-  )
-  next()
-})
+  );
+  next();
+});
 // remove user
 userSchema.methods.toJSON = function () {
-  const obj = this.toObject()
-  delete obj.password
-  return obj
-}
+  const obj = this.toObject();
+  delete obj.password;
+  return obj;
+};
 
-const User = model<TUser>('user', userSchema)
+const User = model<TUser>('user', userSchema);
 export default User;
