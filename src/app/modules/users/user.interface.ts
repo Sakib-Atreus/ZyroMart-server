@@ -7,9 +7,10 @@ export type TUser = {
   phone: string
   role: 'admin' | 'user'
   address: string
-  isDeleted?:string,
   isLoggedIn?:boolean
+  loggedInTime?:Date
   loggedOutTime?:Date
+  isDeleted?:boolean
 }
 
 export type TUserRole = keyof typeof USER_ROLE

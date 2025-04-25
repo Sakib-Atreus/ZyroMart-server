@@ -35,20 +35,27 @@ const userSchema = new Schema<TUser>(
       type: String,
       required: true,
     },
-    isDeleted: { type: Boolean, default: false },
     isLoggedIn: { type: Boolean, default: false },
+    loggedInTime: { type: Date },
     loggedOutTime: { type: Date },
+    isDeleted: { type: Boolean, default: false },
   },
-  { timestamps: true },
+  { 
+    versionKey: false,
+    timestamps: true
+  },
 );
 
 userSchema.pre('save', async function (next) {
-  this.password = await bcrypt.hash(
-    this.password,
-    Number(config.bcrypt_salt_rounds),
-  );
+  if(this.isModified('password')) {
+    this.password = await bcrypt.hash(
+      this.password,
+      Number(config.bcrypt_salt_rounds),
+    );
+  }
   next();
 });
+
 // remove user
 userSchema.methods.toJSON = function () {
   const obj = this.toObject();

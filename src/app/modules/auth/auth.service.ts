@@ -58,9 +58,20 @@ const changePassword = async (email: string, oldPassword: string, newPassword: s
   const isPasswordMatched = await bcrypt.compare(oldPassword, user.password);
   if (!isPasswordMatched) throw new AppError(400, 'Old password is incorrect');
 
-  const hashedPassword = await bcrypt.hash(newPassword, 10);
-  user.password = hashedPassword;
-  await user.save();
+  // Hash the new password
+  const hashedPassword = await bcrypt.hash(newPassword, Number(config.bcrypt_salt_rounds));
+
+  // Update the password directly, bypassing the pre-save hook
+  const updatedUser = await User.findOneAndUpdate(
+    { email },
+    { password: hashedPassword },
+    { new: true }
+  );
+
+  if (!updatedUser) throw new AppError(500, 'Failed to update password');
+
+  // user.password = hashedPassword;
+  // await user.save();
 
   return { message: 'Password updated successfully' };
 };
@@ -73,7 +84,7 @@ const logOutUser = async (userId: string) => {
 
   await User.findOneAndUpdate(
     { _id: userId},
-    { isLoggedIn: false },
+    { isLoggedIn: false, loggedOutTime: new Date() },
     { new: true },
   );
 
