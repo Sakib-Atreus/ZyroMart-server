@@ -42,7 +42,7 @@ import { filterMiddleware } from '../../middleware/filterProductMiddleware';
 const router = express.Router();
 
 router.post('/', ProductControllers.createProduct);
-router.get('/', auth(USER_ROLE.user), filterMiddleware, ProductControllers.getAllProducts);
+router.get('/', auth(USER_ROLE.admin, USER_ROLE.user), filterMiddleware, ProductControllers.getAllProducts);
 router.get('/:productId', ProductControllers.getSingleProduct);
 router.delete('/:productId', auth(USER_ROLE.admin), ProductControllers.deleteProduct);
 router.put('/:productId', ProductControllers.updateProduct);
