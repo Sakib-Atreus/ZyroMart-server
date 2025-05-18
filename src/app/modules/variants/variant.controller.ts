@@ -21,6 +21,7 @@ const createVariant = async (req: Request, res: Response) => {
     //   { $push: { variants: createdVariant._id } },
     //   { new: true }
     // );
+
     await ProductModel.findByIdAndUpdate(
       variantData.productId,
       { $push: { variants: variantData } }, // ✅ Push full object here
