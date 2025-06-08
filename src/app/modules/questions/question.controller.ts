@@ -77,7 +77,6 @@ const getSingleQuestion = async (req: Request, res: Response) => {
     }
   };
   
-
 // Controller to get questions by product
 const getQuestionsByProduct = async (req: Request, res: Response) => {
   try {
