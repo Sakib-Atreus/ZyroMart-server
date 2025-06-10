@@ -27,7 +27,6 @@
 //   // inventory: Inventory;
 // };
 
-
 import { CategoryType } from "../../constants";
 import { Variant } from "../variants/variant.interface";
 
@@ -41,4 +40,3 @@ export type Product = {
   tags: string[];
   variants: Variant[];
 };
-
