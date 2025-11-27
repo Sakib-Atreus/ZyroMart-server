@@ -40,3 +40,4 @@ export type Product = {
   tags: string[];
   variants: Variant[];
 };
+
