@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
-import config from './app/config';
+import config from './config';
 import app from './app';
-import adminSeeder from './app/modules/users/seeders/adminSeeder';
+import adminSeeder from './modules/users/seeders/adminSeeder';
 
 async function main() {
   try {
