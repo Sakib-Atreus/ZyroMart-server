@@ -1,151 +1,194 @@
-// import { Product } from './product.interface';
-// import { ProductModel } from './product.model';
-
-// // product create service
-// const createProductIntoDB = async (product: Product) => {
-//   const result = await ProductModel.create(product);
-//   return result;
-// };
-
-// // this service work for get all product and search by a value
-// const getAllProductsFromDB = async (
-//   searchTerm: object,
-// ): Promise<Product[] | null> => {
-//   const result = await ProductModel.find(searchTerm);
-//   return result;
-// };
-
-// // service for a single product
-// const getSingleProductFromDB = async (_id: string) => {
-//   const result = await ProductModel.findOne({ _id });
-//   return result;
-// };
-
-// // this service work when a product delete
-// const deleteProductFromDB = async (_id: string) => {
-//   const result = await ProductModel.deleteOne({ _id });
-//   return result;
-// };
-
-// // for update a product, this service work for it
-// const updateProductFromDB = async (
-//   _id: string,
-//   updateData: Partial<Product>,
-// ) => {
-//   try {
-//     const result = await ProductModel.findByIdAndUpdate(_id, updateData, {
-//       new: true,
-//       runValidators: true,
-//     }).exec();
-//     return result;
-//   } catch (error) {
-//     console.error(`Failed to update product with id ${_id}:`, error);
-//     throw error;
-//   }
-// };
-
-// // we can export this main service for using another file or controllers
-// export const ProductServices = {
-//   createProductIntoDB,
-//   getAllProductsFromDB,
-//   getSingleProductFromDB,
-//   deleteProductFromDB,
-//   updateProductFromDB,
-// };
-
-
-
-import { Product } from './product.interface';
-import { ProductModel } from './product.model';
+import AppError from '../../Error/AppError';
+import QueryBuilder from '../../utility/QueryBuilder';
+import { generateUniqueSlug } from '../../utility/generateSlug';
+import config from '../../config';
+import { CategoryModel } from '../categories/category.model';
 import { VariantModel } from '../variants/variant.model';
-import { Variant } from '../variants/variant.interface';
+import { IProduct, TProductStatus } from './product.interface';
+import { ProductModel } from './product.model';
+import { validateAttributes, validateVariantOptionKeys } from './validateAttributes';
 
-// Create a new product
-const createProductIntoDB = async (product: Product) => {
-  const result = await ProductModel.create(product);
-  return result;
+type CreateProductInput = Partial<IProduct> & {
+  category: string;
+  name: string;
+  brand: string;
+  description: string;
+  images: string[];
+  thumbnail: string;
+  basePrice: number;
+  hasVariants?: boolean;
+  variantOptions?: IProduct['variantOptions'];
+  attributes?: Record<string, unknown>;
 };
 
-// Get all products from the database with optional search filtering
-// const getAllProductsFromDB = async (searchTerm: object = {}): Promise<Product[] | null> => {
-//   const result = await ProductModel.find(searchTerm).populate('variants');
-//   return result;
-// };
-const getAllProductsFromDB = async (filterQuery : any = {}): Promise<Product[] | null> => {
-  const result = await ProductModel.find(filterQuery).populate('variants');
-  return result;
-};
+const createProduct = async (vendorId: string, input: CreateProductInput) => {
+  const category = await CategoryModel.findById(input.category).lean();
+  if (!category) throw new AppError(404, 'Category not found');
+  if (!category.isActive) throw new AppError(400, 'Category is inactive');
 
-// Get a single product by its ID
-const getSingleProductFromDB = async (_id: string): Promise<Product | null> => {
-  const result = await ProductModel.findById(_id).populate('variants');
-  return result;
-};
+  validateAttributes(category.attributeSchema, input.attributes ?? {});
 
-// Delete a product by its ID
-const deleteProductFromDB = async (_id: string): Promise<any> => {
-  // First, delete all variants related to the product
-  await VariantModel.deleteMany({ productId: _id });
-
-  // Then, delete the product itself
-  const result = await ProductModel.findByIdAndDelete(_id);
-  return result;
-};
-
-// Update a product by its ID
-const updateProductFromDB = async (_id: string, updateData: Partial<Product>) => {
-  const result = await ProductModel.findByIdAndUpdate(_id, updateData, {
-    new: true,
-    runValidators: true,
-  }).populate('variants');
-  return result;
-};
-
-// Add variants to an existing product
-const addVariantsToProduct = async (productId: string, variants: Variant[]) => {
-  // Find the product by ID
-  const product = await ProductModel.findById(productId);
-
-  if (!product) {
-    throw new Error('Product not found');
+  if (input.hasVariants) {
+    validateVariantOptionKeys(
+      category.attributeSchema,
+      (input.variantOptions ?? []).map(v => v.key),
+    );
   }
 
-  // Add each variant to the product
-  const variantPromises = variants.map((variant) => {
-    return VariantModel.create({ ...variant, productId });
+  const slug = await generateUniqueSlug(input.name, ProductModel);
+
+  const doc = await ProductModel.create({
+    ...input,
+    slug,
+    vendor: vendorId,
+    currency: input.currency ?? config.default_currency,
+    status: 'pending',
   });
+  return doc;
+};
 
-  const newVariants = await Promise.all(variantPromises);
+const updateProduct = async (
+  vendorId: string,
+  productId: string,
+  input: Partial<CreateProductInput>,
+  isAdmin = false,
+) => {
+  const product = await ProductModel.findById(productId);
+  if (!product || product.isDeleted) throw new AppError(404, 'Product not found');
+  if (!isAdmin && product.vendor.toString() !== vendorId) {
+    throw new AppError(403, 'You do not own this product');
+  }
 
-  // Optionally, update the product to include the new variants in the product's `variants` field
-  product.variants.push(...newVariants);
+  // If attributes or category changed, re-validate against blueprint
+  const categoryId = input.category ?? product.category.toString();
+  if (input.attributes || input.category || input.variantOptions) {
+    const category = await CategoryModel.findById(categoryId).lean();
+    if (!category) throw new AppError(404, 'Category not found');
+    const mergedAttrs = {
+      ...Object.fromEntries(product.attributes as Map<string, unknown>),
+      ...(input.attributes ?? {}),
+    };
+    validateAttributes(category.attributeSchema, mergedAttrs);
+
+    const variantOpts = input.variantOptions ?? product.variantOptions;
+    const hasVariants = input.hasVariants ?? product.hasVariants;
+    if (hasVariants) {
+      validateVariantOptionKeys(
+        category.attributeSchema,
+        variantOpts.map(v => v.key),
+      );
+    }
+  }
+
+  const update: Partial<IProduct> = { ...(input as Partial<IProduct>) };
+  if (input.name && input.name !== product.name) {
+    update.slug = await generateUniqueSlug(input.name, ProductModel);
+  }
+  // Edits by vendor require re-approval
+  if (!isAdmin) update.status = 'pending';
+
+  const updated = await ProductModel.findByIdAndUpdate(productId, update, {
+    new: true,
+    runValidators: true,
+  });
+  return updated;
+};
+
+const deleteProduct = async (vendorId: string, productId: string, isAdmin = false) => {
+  const product = await ProductModel.findById(productId);
+  if (!product || product.isDeleted) throw new AppError(404, 'Product not found');
+  if (!isAdmin && product.vendor.toString() !== vendorId) {
+    throw new AppError(403, 'You do not own this product');
+  }
+  product.isDeleted = true;
+  product.status = 'archived';
   await product.save();
 
+  // soft-disable all variants
+  await VariantModel.updateMany({ product: productId }, { isActive: false });
   return product;
 };
 
-// Update variant details for a specific product
-const updateVariantDetails = async (variantId: string, updateData: Partial<Variant>) => {
-  const updatedVariant = await VariantModel.findByIdAndUpdate(variantId, updateData, {
-    new: true,
-    runValidators: true,
-  });
-  return updatedVariant;
+const changeProductStatus = async (
+  id: string,
+  status: TProductStatus,
+  rejectionReason?: string,
+) => {
+  const product = await ProductModel.findByIdAndUpdate(
+    id,
+    { status, ...(rejectionReason ? { rejectionReason } : {}) },
+    { new: true, runValidators: true },
+  );
+  if (!product) throw new AppError(404, 'Product not found');
+  return product;
 };
 
-// Get variants of a specific product
-const getVariantsForProduct = async (productId: string): Promise<Variant[] | null> => {
-  const product = await ProductModel.findById(productId).populate('variants');
-  return product ? product.variants : null;
+const getAllProducts = async (query: Record<string, unknown>) => {
+  const baseFilter = { status: 'approved', isDeleted: false };
+  const builder = new QueryBuilder(ProductModel.find(baseFilter), query)
+    .search(['name', 'brand', 'description', 'tags'])
+    .filter()
+    .sort()
+    .fields()
+    .paginate();
+
+  const [data, meta] = await Promise.all([
+    builder.modelQuery.populate('category', 'name slug').lean(),
+    builder.countTotal(),
+  ]);
+  return { data, meta };
+};
+
+const getProductBySlug = async (slug: string) => {
+  const product = await ProductModel.findOne({
+    slug,
+    status: 'approved',
+    isDeleted: false,
+  })
+    .populate('category', 'name slug attributeSchema')
+    .populate('vendor', 'shopName slug logo rating')
+    .lean();
+  if (!product) throw new AppError(404, 'Product not found');
+
+  const variants = await VariantModel.find({
+    product: product._id,
+    isActive: true,
+  }).lean();
+
+  return { ...product, variants };
+};
+
+const getProductById = async (id: string) => {
+  const product = await ProductModel.findById(id);
+  if (!product || product.isDeleted) throw new AppError(404, 'Product not found');
+  return product;
+};
+
+const getVendorProducts = async (vendorId: string, query: Record<string, unknown>) => {
+  const builder = new QueryBuilder(
+    ProductModel.find({ vendor: vendorId, isDeleted: false }),
+    query,
+  )
+    .search(['name', 'brand', 'tags'])
+    .filter()
+    .sort()
+    .fields()
+    .paginate();
+
+  const [data, meta] = await Promise.all([
+    builder.modelQuery.populate('category', 'name slug').lean(),
+    builder.countTotal(),
+  ]);
+  return { data, meta };
 };
 
 export const ProductServices = {
-  createProductIntoDB,
-  getAllProductsFromDB,
-  getSingleProductFromDB,
-  deleteProductFromDB,
-  updateProductFromDB,
-  addVariantsToProduct,
-  updateVariantDetails,
-  getVariantsForProduct,
+  createProduct,
+  updateProduct,
+  deleteProduct,
+  changeProductStatus,
+  getAllProducts,
+  getProductBySlug,
+  getProductById,
+  getVendorProducts,
 };

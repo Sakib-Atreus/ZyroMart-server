@@ -1,136 +1,75 @@
-// import { z } from 'zod';
-
-// const variantValidationSchema = z.object({
-//   type: z.string({
-//     required_error: 'Variant type is required.',
-//   }).min(3, { message: 'Variant type must be at least 3 characters.' })
-//     .max(20, { message: 'Variant type must be at most 20 characters long.' }),
-
-//   value: z.string({
-//     required_error: 'Variant value is required.',
-//   }).min(1, { message: 'Variant value must be at least 1 character.' })
-//     .max(20, { message: 'Variant value must be at most 20 characters long.' }),
-
-//   price: z.number({
-//     required_error: 'Product price is required.',
-//   }).min(1, { message: 'Price must be at least 1.' })
-//     .max(999999, { message: 'Price must be at most 999999.' }),
-
-//   sku: z.string({
-//     required_error: 'Variant SKU is required.',
-//   }).min(3, { message: 'SKU must be at least 3 characters long.' })
-//     .max(30, { message: 'SKU must be at most 30 characters long.' }),
-
-//   image: z.array(z.string({
-//     required_error: 'Variant image is required.',
-//   }).url({ message: 'Each image must be a valid URL.' }))
-//     .min(1, { message: 'At least one image is required.' }),
-
-//   stock: z.number({
-//     required_error: 'Variant stock is required.',
-//   }).min(0, { message: 'Variant stock cannot be less than 0.' }),
-// });
-
-// const inventoryValidationSchema = z.object({
-//   quantity: z.number({
-//     required_error: 'Inventory quantity is required.',
-//   }).min(0, { message: 'Quantity cannot be less than 0.' })
-//     .max(999, { message: 'Quantity cannot be more than 999.' }),
-
-//   inStock: z.boolean({
-//     required_error: 'In-stock status is required.',
-//   }),
-// });
-
-// const productValidationSchema = z.object({
-//   name: z.string({
-//     required_error: 'Product name is required.',
-//   }).min(3, { message: 'Product name must be at least 3 characters.' })
-//     .max(100, { message: 'Product name must be at most 100 characters long.' }),
-
-//   description: z.string({
-//     required_error: 'Product description is required.',
-//   }).min(10, { message: 'Product description must be at least 10 characters.' })
-//     .max(500, { message: 'Product description must be at most 500 characters long.' }),
-
-//   // category: z.string({
-//   //   required_error: 'Product category is required.',
-//   // }).min(3, { message: 'Category must be at least 3 characters long.' })
-//   //   .max(20, { message: 'Category must be at most 20 characters long.' }),
-  
-//   category: z.enum(['Mobile', 'Laptop', 'Headphone', 'Power Bank'], {
-//     required_error: 'Product category is required.',
-//   }),
-
-//   brand: z.string({
-//     required_error: 'Product brand is required.',
-//   }).min(2, { message: 'Brand must be at least 2 characters long.' })
-//     .max(30, { message: 'Brand must be at most 30 characters long.' }),
-
-//   tags: z.array(z.string({
-//     required_error: 'Tag is required.',
-//   }).min(2, { message: 'Each tag must be at least 2 characters long.' })
-//     .max(20, { message: 'Each tag must be at most 20 characters long.' })),
-
-//   variants: z.array(variantValidationSchema, {
-//     required_error: 'At least one variant is required.',
-//   }).nonempty({ message: 'At least one variant is required.' }),
-
-//   inventory: inventoryValidationSchema,
-// });
-
-// const partialProductValidationSchema = productValidationSchema.partial();
-
-// export { productValidationSchema, partialProductValidationSchema };
-
-
-
 import { z } from 'zod';
+import { Types } from 'mongoose';
 
-export const categoryOptions = [
-  'Phone',
-  'Power-Bank',
-  'Speakers',
-  'Camera-Gimbal',
-  'Cases-Protector',
-  'Cable-Adapter',
-  'iPad',
-  'Headset',
-  'Car-Accessories',
-  'Wearables',
-  'Mac',
-  'Video-Games',
-  'Earbuds',
-  'Airpods',
-  'Tablets',
-  'Others'
-] as const;
+const objectId = z
+  .string()
+  .refine(v => Types.ObjectId.isValid(v), { message: 'Invalid ObjectId' });
 
-export const categoryEnum = z.enum(categoryOptions);
+const variantOptionDeclaration = z.object({
+  key: z.string().min(1),
+  label: z.string().min(1),
+  values: z.array(z.string().min(1)).min(1),
+});
 
-export const variantValidationSchema = z.object({
-  options: z.object({
-    color: z.string().optional(),
-    ram: z.string().optional(),
-    storage: z.string().optional(),
-    capacity: z.string().optional(),
-    connectivity: z.string().optional(),
+const productBodySchema = z
+  .object({
+    category: objectId,
+    name: z.string().min(2).max(200),
+    brand: z.string().min(1).max(60),
+    description: z.string().min(10),
+    shortDescription: z.string().max(300).optional(),
+    images: z.array(z.string().url()).min(1).max(15),
+    thumbnail: z.string().url(),
+    basePrice: z.number().positive(),
+    compareAtPrice: z.number().positive().optional(),
+    currency: z.string().length(3).optional(),
+    hasVariants: z.boolean().default(false),
+    variantOptions: z.array(variantOptionDeclaration).default([]),
+    attributes: z.record(z.any()).default({}),
+    tags: z.array(z.string()).max(30).default([]),
+    warranty: z.string().max(200).optional(),
+  })
+  .refine(v => !v.hasVariants || v.variantOptions.length > 0, {
+    message: 'variantOptions is required when hasVariants is true',
+    path: ['variantOptions'],
+  })
+  .refine(
+    v => v.compareAtPrice === undefined || v.compareAtPrice >= v.basePrice,
+    { message: 'compareAtPrice must be >= basePrice', path: ['compareAtPrice'] },
+  );
+
+export const createProductSchema = z.object({ body: productBodySchema });
+
+export const updateProductSchema = z.object({
+  body: z
+    .object({
+      category: objectId.optional(),
+      name: z.string().min(2).max(200).optional(),
+      brand: z.string().min(1).max(60).optional(),
+      description: z.string().min(10).optional(),
+      shortDescription: z.string().max(300).optional(),
+      images: z.array(z.string().url()).min(1).max(15).optional(),
+      thumbnail: z.string().url().optional(),
+      basePrice: z.number().positive().optional(),
+      compareAtPrice: z.number().positive().optional(),
+      currency: z.string().length(3).optional(),
+      hasVariants: z.boolean().optional(),
+      variantOptions: z.array(variantOptionDeclaration).optional(),
+      attributes: z.record(z.any()).optional(),
+      tags: z.array(z.string()).max(30).optional(),
+      warranty: z.string().max(200).optional(),
+    }),
+  params: z.object({ id: objectId }),
+});
+
+export const changeProductStatusSchema = z.object({
+  body: z.object({
+    status: z.enum(['pending', 'approved', 'rejected', 'archived']),
+    rejectionReason: z.string().optional(),
   }),
-  price: z.number().min(0),
-  quantity: z.number().min(0),
-  inStock: z.boolean(),
-  sku: z.string().min(1),
+  params: z.object({ id: objectId }),
 });
 
-export const productValidationSchema = z.object({
-  name: z.string().min(1),
-  description: z.string().min(1),
-  images: z.array(z.string().url()),
-  // category: z.enum(['phone', 'laptop', 'headphone']),
-  category: categoryEnum,
-  brand: z.string().min(1),
-  tags: z.array(z.string().min(1)),
-  variants: z.array(variantValidationSchema),
+export const productIdParamsSchema = z.object({
+  params: z.object({ id: objectId }),
 });
-
-export const partialProductValidationSchema = productValidationSchema.partial();

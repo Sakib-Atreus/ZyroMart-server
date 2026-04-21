@@ -1,88 +1,107 @@
 import { Request, Response } from 'express';
+import catchAsync from '../../utility/catchAsync';
+import sendResponse from '../../utility/sendResponse';
 import { OrderServices } from './order.service';
-import orderValidationSchema from './order.validation';
 
-// this is controller for creating a order
-const createOrder = async (req: Request, res: Response) => {
-  try {
-    const orderData = req.body;
-    const parsedOrderData = orderValidationSchema.parse(orderData);
-    const result = await OrderServices.createOrderIntoDB(parsedOrderData);
+const createOrder = catchAsync(async (req: Request, res: Response) => {
+  const result = await OrderServices.createOrderFromCart(req.user.id, req.body);
+  sendResponse(res, {
+    statusCode: 201,
+    success: true,
+    message: 'Order placed successfully',
+    data: result,
+  });
+});
 
-    // for send response
-    res.status(200).json({
-      success: true,
-      message: 'Order created successfully!',
-      data: result,
-    });
-  } catch (err: any) {
-    res.status(500).json({
-      success: false,
-      message: err.message || 'Something went wrong',
-      err,
-    });
-  }
-};
+const getMyOrders = catchAsync(async (req: Request, res: Response) => {
+  const { data, meta } = await OrderServices.getMyOrders(
+    req.user.id,
+    req.query as Record<string, unknown>,
+  );
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'Orders fetched',
+    data,
+    meta,
+  });
+});
 
-// this control handle to get all products and find order by individual user email
-const getAllOrders = async (req: Request, res: Response) => {
-  try {
-    const { email } = req.query as { email: string };
+const getOrderById = catchAsync(async (req: Request, res: Response) => {
+  const result = await OrderServices.getOrderById(req.params.id, {
+    id: req.user.id,
+    role: req.user.role,
+  });
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'Order fetched',
+    data: result,
+  });
+});
 
-    const result = await OrderServices.getAllOrdersFromDB(email);
+const cancelOrder = catchAsync(async (req: Request, res: Response) => {
+  const result = await OrderServices.cancelOrder(
+    req.params.id,
+    req.user.id,
+    req.body?.reason,
+  );
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'Order cancelled',
+    data: result,
+  });
+});
 
-    if (email) {
-      res.status(200).json({
-        success: true,
-        message: 'Orders fetched successfully for user email!',
-        data: result,
-      });
-    } else {
-      res.status(200).json({
-        success: true,
-        message: 'Orders fetched successfully!',
-        data: result,
-      });
-    }
-  } catch (error: any) {
-    res.status(500).json({
-      success: false,
-      message: error.message || 'Something went wrong',
-      error,
-    });
-  }
-};
+const updateOrderStatus = catchAsync(async (req: Request, res: Response) => {
+  const result = await OrderServices.updateStatusByVendorOrAdmin(
+    req.params.id,
+    req.body.status,
+    { id: req.user.id, role: req.user.role },
+    req.body.note,
+  );
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: `Order status updated to ${result.status}`,
+    data: result,
+  });
+});
 
-// find a single product by using id and get error when id doesn't match
-const getSingleOrder = async (req: Request, res: Response) => {
-  try {
-    const { orderId } = req.params;
-    const result = await OrderServices.getSingleOrderFromDB(orderId);
+const getVendorOrders = catchAsync(async (req: Request, res: Response) => {
+  const { data, meta } = await OrderServices.getVendorOrders(
+    req.user.id,
+    req.query as Record<string, unknown>,
+  );
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'Vendor orders fetched',
+    data,
+    meta,
+  });
+});
 
-    if (!result) {
-      // If the product is not found, return a 404 status code
-      return res
-        .status(404)
-        .json({ success: false, message: 'Order not found' });
-    }
+const getAllOrders = catchAsync(async (req: Request, res: Response) => {
+  const { data, meta } = await OrderServices.getAllOrders(
+    req.query as Record<string, unknown>,
+  );
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'Orders fetched',
+    data,
+    meta,
+  });
+});
 
-    res.status(200).json({
-      success: true,
-      message: 'Order fetched successfully!',
-      data: result,
-    });
-  } catch (err: any) {
-    // If an error occurs, return a 500 status code
-    res.status(500).json({
-      success: false,
-      message: 'Order not found',
-    });
-  }
-};
-
-// export this order main controllers for using another file
 export const OrderControllers = {
   createOrder,
+  getMyOrders,
+  getOrderById,
+  cancelOrder,
+  updateOrderStatus,
+  getVendorOrders,
   getAllOrders,
-  getSingleOrder,
 };

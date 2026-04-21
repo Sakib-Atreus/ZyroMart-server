@@ -1,43 +1,45 @@
-// import { CategoryType } from "../../constants";
-// import { Variant } from "../variants/variant.interface";
+import { Types } from 'mongoose';
 
-// // export type Variant = {
-// //   type: string; // "Color", "RAM", "Storage"
-// //   value: string; // "Black", "6GB", "128GB"
-// //   price: number;
-// //   sku: string;
-// //   image: string[];
-// //   inStock: boolean;
-// //   quantity: number;
-// // };
+export type TProductStatus = 'draft' | 'pending' | 'approved' | 'rejected' | 'archived';
 
-// // export type Inventory = {
-// //   quantity: number;
-// //   inStock: boolean;
-// // };
+export interface IVariantOptionDeclaration {
+  key: string;
+  label: string;
+  values: string[];
+}
 
-// export type Product = {
-//   name: string;
-//   description: string;
-//   images: string[];
-//   category: CategoryType;
-//   brand: string;
-//   tags: string[];
-//   variants: Variant[];
-//   // inventory: Inventory;
-// };
+export interface IProduct {
+  vendor: Types.ObjectId;
+  category: Types.ObjectId;
 
-import { CategoryType } from "../../constants";
-import { Variant } from "../variants/variant.interface";
-
-// Product interface, using the Variant interface
-export type Product = {
   name: string;
-  description: string;
-  images: string[];
-  category: CategoryType;
+  slug: string;
   brand: string;
-  tags: string[];
-  variants: Variant[];
-};
+  description: string;
+  shortDescription?: string;
 
+  images: string[];
+  thumbnail: string;
+
+  basePrice: number;
+  compareAtPrice?: number;
+  currency: string;
+
+  hasVariants: boolean;
+  variantOptions: IVariantOptionDeclaration[];
+
+  attributes: Map<string, unknown>;
+
+  tags: string[];
+  warranty?: string;
+
+  status: TProductStatus;
+  rejectionReason?: string;
+
+  averageRating: number;
+  reviewCount: number;
+  questionCount: number;
+  totalSold: number;
+
+  isDeleted: boolean;
+}

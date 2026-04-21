@@ -7,7 +7,7 @@ const adminSeeder = async () => {
         name: "Admin",
         phone: "01777777777",
         email: process.env.admin_user || "admin@gmail.com",
-        password: process.env.admin_password || "admin",
+        password: process.env.admin_pass || "admin",
         role: USER_ROLE.admin,
         address: "Dhaka, Bangladesh"
     }

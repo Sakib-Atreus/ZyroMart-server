@@ -1,139 +1,62 @@
-// import { Schema, model } from 'mongoose';
-// import { Inventory, Product, Variant } from './product.interface';
+import { Schema, model } from 'mongoose';
+import { IProduct, IVariantOptionDeclaration } from './product.interface';
 
-// const variantSchema = new Schema<Variant>(
-//   {
-//     type: {
-//       type: String,
-//       required: [true, 'Product variant type is required'],
-//     },
-//     value: {
-//       type: String,
-//       required: [true, 'Product variant value is required'],
-//     },
-//     price: {
-//       type: Number,
-//       required: [true, 'Product variant price is required'],
-//     },
-//     sku: {
-//       type: String,
-//       required: [true, 'Product variant SKU is required'],
-//     },
-//     image: {
-//       type: [String],
-//       required: [true, 'Product variant images are required'],
-//     },
-//     stock: {
-//       type: Number,
-//       required: [true, 'Product variant stock is required'],
-//     },
-//   },
-// );
-
-// const inventorySchema = new Schema<Inventory>(
-//   {
-//     quantity: {
-//       type: Number,
-//       required: [true, 'Product quantity value is required'],
-//     },
-//     inStock: {
-//       type: Boolean,
-//       default: true,
-//     },
-//   },
-// );
-
-// const productSchema = new Schema<Product>(
-//   {
-//     name: {
-//       type: String,
-//       required: [true, 'Product name is required'],
-//       unique: true,
-//     },
-//     description: {
-//       type: String,
-//       required: [true, 'Product description is required'],
-//     },
-//     category: {
-//       type: String,
-//       enum: ['Mobile', 'Laptop', 'Headphone', 'Power Bank'],
-//       required: [true, 'Product category is required'],
-//     },
-//     brand: {
-//       type: String,
-//       required: [true, 'Product brand is required'],
-//     },
-//     tags: [
-//       {
-//         type: String,
-//         required: [true, 'Product tags is required'],
-//       },
-//     ],
-//     variants: {
-//       type: [variantSchema],
-//       required: [true, 'Product variant is required'],
-//     },
-//     inventory: {
-//       type: inventorySchema,
-//       required: [true, 'Product inventory is required'],
-//     },
-//   },
-//   { timestamps: true }
-// );
-
-// export const ProductModel = model<Product>('Product', productSchema);
-
-
-
-import mongoose, { Schema} from 'mongoose';
-import { Product } from './product.interface';
-
-export const categoryEnum = [
-  'Phone',
-  'Power-Bank',
-  'Speakers',
-  'Camera-Gimbal',
-  'Cases-Protector',
-  'Cable-Adapter',
-  'iPad',
-  'Headset',
-  'Car-Accessories',
-  'Wearables',
-  'Mac',
-  'Video-Games',
-  'Earbuds',
-  'Airpods',
-  'Tablets',
-  'Others'
-];
-
-const variantSchema = new Schema({
-  productId: { type: Schema.Types.ObjectId, ref: 'Product' },
-  variantOptions: {
-    color: { type: String },
-    ram: { type: String },
-    storage: { type: String },
-    capacity: { type: String },
-    connectivity: { type: String },
+const VariantOptionDeclarationSchema = new Schema<IVariantOptionDeclaration>(
+  {
+    key: { type: String, required: true },
+    label: { type: String, required: true },
+    values: { type: [String], required: true, default: [] },
   },
-  price: { type: Number, required: true },
-  quantity: { type: Number, required: true },
-  inStock: { type: Boolean, required: true },
-  sku: { type: String, required: true },
-});
+  { _id: false },
+);
 
-const productSchema = new Schema<Product>({
-  name: { type: String, required: true },
-  description: { type: String, required: true },
-  images: [{ type: String }],
-  // category: { type: String, enum: ['phone', 'laptop', 'headphone'], required: true },
-  category: categoryEnum,
-  brand: { type: String, required: true },
-  tags: [{ type: String }],
-  // variants: [{ type: Schema.Types.ObjectId, ref: 'Variant' }],
-  variants: [variantSchema],
-});
+const ProductSchema = new Schema<IProduct>(
+  {
+    vendor: { type: Schema.Types.ObjectId, ref: 'Vendor', required: true, index: true },
+    category: { type: Schema.Types.ObjectId, ref: 'Category', required: true, index: true },
 
-const ProductModel = mongoose.model<Product>('Product', productSchema);
+    name: { type: String, required: true, trim: true },
+    slug: { type: String, required: true, unique: true, lowercase: true },
+    brand: { type: String, required: true, trim: true, index: true },
+    description: { type: String, required: true },
+    shortDescription: { type: String },
 
-export { ProductModel };
+    images: { type: [String], required: true, default: [] },
+    thumbnail: { type: String, required: true },
+
+    basePrice: { type: Number, required: true, min: 0 },
+    compareAtPrice: { type: Number, min: 0 },
+    currency: { type: String, required: true, default: 'BDT', uppercase: true },
+
+    hasVariants: { type: Boolean, default: false },
+    variantOptions: { type: [VariantOptionDeclarationSchema], default: [] },
+
+    attributes: { type: Map, of: Schema.Types.Mixed, default: {} },
+
+    tags: { type: [String], default: [] },
+    warranty: { type: String },
+
+    status: {
+      type: String,
+      enum: ['draft', 'pending', 'approved', 'rejected', 'archived'],
+      default: 'pending',
+      index: true,
+    },
+    rejectionReason: { type: String },
+
+    averageRating: { type: Number, default: 0, min: 0, max: 5 },
+    reviewCount: { type: Number, default: 0, min: 0 },
+    questionCount: { type: Number, default: 0, min: 0 },
+    totalSold: { type: Number, default: 0, min: 0 },
+
+    isDeleted: { type: Boolean, default: false, index: true },
+  },
+  { timestamps: true, versionKey: false },
+);
+
+ProductSchema.index({ vendor: 1, status: 1 });
+ProductSchema.index({ category: 1, status: 1 });
+ProductSchema.index({ status: 1, createdAt: -1 });
+ProductSchema.index({ name: 'text', description: 'text', tags: 'text' });
+
+export const ProductModel = model<IProduct>('Product', ProductSchema);

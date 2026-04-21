@@ -31,7 +31,7 @@ const auth = (...userRoles: TUserRole[]) => {
     if (userRoles && !userRoles.includes(decoded?.role)) {
       throw new AppError(401, 'You have no access to this route');
     }
-    req.user = decoded as JwtPayload;
+    req.user = decoded as typeof req.user;
     next();
   });
 };

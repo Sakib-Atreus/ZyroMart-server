@@ -2,7 +2,7 @@ import { z } from 'zod'
 import { nameEnum } from './user.constant'
 
 // Define the enum values as a Zod enum
-const roleEnum = z.enum(nameEnum as [string, ...string[]])
+const roleEnum = z.enum([...nameEnum] as [string, ...string[]])
 
 const userCreateValidationSchema = z.object({
   body: z.object({
@@ -17,6 +17,15 @@ const userCreateValidationSchema = z.object({
   }),
 })
 
+const updateMeValidationSchema = z.object({
+  body: z.object({
+    name: z.string().min(1).max(80).optional(),
+    phone: z.string().min(5).max(20).optional(),
+    address: z.string().min(1).max(300).optional(),
+  }),
+});
+
 export const UserValidations = {
   userCreateValidationSchema,
+  updateMeValidationSchema,
 }

@@ -1,59 +1,58 @@
-// import express from 'express';
-// import { ProductControllers } from './product.controller';
-// import auth from '../../middleware/auth';
-// import { USER_ROLE } from '../users/user.constant';
-
-// const router = express.Router();
-
-// // this all routes call the controllers function to :
-// // create or post a new product
-// router.post('/', auth(USER_ROLE.admin), ProductControllers.createProduct);
-
-// // get all products
-// router.get('/', ProductControllers.getAllProducts);
-
-// // get a single product
-// router.get('/:productId', ProductControllers.getSingleProduct);
-
-// // delete a single product
-// router.delete(
-//   '/:productId',
-//   auth(USER_ROLE.admin),
-//   ProductControllers.deleteProduct,
-// );
-
-// // update a single product
-// router.put(
-//   '/:productId',
-//   auth(USER_ROLE.admin),
-//   ProductControllers.updateProduct,
-// );
-
-// export const ProductRoute = router;
-
-
-
 import express from 'express';
-import { ProductControllers } from './product.controller';
 import auth from '../../middleware/auth';
+import validateRequest from '../../middleware/validateRequest';
 import { USER_ROLE } from '../users/user.constant';
-import { filterMiddleware } from '../../middleware/filterProductMiddleware';
+import { ProductControllers } from './product.controller';
+import {
+  createProductSchema,
+  updateProductSchema,
+  changeProductStatusSchema,
+  productIdParamsSchema,
+} from './product.validation';
 
 const router = express.Router();
 
-// route for creating a new product
-router.post('/', auth(USER_ROLE.admin, USER_ROLE.user), ProductControllers.createProduct);
+// public
+router.get('/', ProductControllers.getAllProducts);
 
-// route for getting all products with filter middleware
-router.get('/', filterMiddleware, ProductControllers.getAllProducts);
+// vendor dashboard
+router.get(
+  '/vendor/me',
+  auth(USER_ROLE.vendor, USER_ROLE.admin),
+  ProductControllers.getVendorProducts,
+);
 
-// route for getting a single product
-router.get('/:productId', ProductControllers.getSingleProduct);
+// public detail
+router.get('/:slug', ProductControllers.getProductBySlug);
 
-// route for deleting a single product
-router.delete('/:productId', auth(USER_ROLE.admin, USER_ROLE.user), ProductControllers.deleteProduct);
+// vendor write
+router.post(
+  '/',
+  auth(USER_ROLE.vendor, USER_ROLE.admin),
+  validateRequest(createProductSchema),
+  ProductControllers.createProduct,
+);
 
-// route for updating a single product
-router.put('/:productId', auth(USER_ROLE.admin, USER_ROLE.user), ProductControllers.updateProduct);
+router.patch(
+  '/:id',
+  auth(USER_ROLE.vendor, USER_ROLE.admin),
+  validateRequest(updateProductSchema),
+  ProductControllers.updateProduct,
+);
+
+router.delete(
+  '/:id',
+  auth(USER_ROLE.vendor, USER_ROLE.admin),
+  validateRequest(productIdParamsSchema),
+  ProductControllers.deleteProduct,
+);
+
+// admin moderation
+router.patch(
+  '/:id/status',
+  auth(USER_ROLE.admin),
+  validateRequest(changeProductStatusSchema),
+  ProductControllers.changeProductStatus,
+);
 
 export const ProductRoute = router;
