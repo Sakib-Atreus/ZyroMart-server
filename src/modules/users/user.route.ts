@@ -8,6 +8,12 @@ import { UserValidations } from './user.validation';
 const router = express.Router();
 
 router.get(
+  '/admin/list',
+  auth(USER_ROLE.admin),
+  UserControllers.adminList,
+);
+
+router.get(
   '/me',
   auth(USER_ROLE.user, USER_ROLE.vendor, USER_ROLE.admin),
   UserControllers.getMe,

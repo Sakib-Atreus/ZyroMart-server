@@ -1,17 +1,37 @@
 import { Request, Response } from 'express';
 import catchAsync from '../../utility/catchAsync';
 import sendResponse from '../../utility/sendResponse';
+import AppError from '../../Error/AppError';
 import { VendorServices } from '../vendors/vendor.service';
+import { VendorModel } from '../vendors/vendor.model';
 import { USER_ROLE } from '../users/user.constant';
 import { ProductServices } from './product.service';
 
 const createProduct = catchAsync(async (req: Request, res: Response) => {
-  const vendor = await VendorServices.getApprovedVendorByUserOrFail(req.user.id);
-  const result = await ProductServices.createProduct(vendor._id.toString(), req.body);
+  const isAdmin = req.user.role === USER_ROLE.admin;
+  let vendorId: string;
+
+  if (isAdmin) {
+    // Admin must specify which vendor owns the product
+    if (!req.body.vendor) {
+      throw new AppError(400, 'Admin must specify a vendor id when creating a product');
+    }
+    const vendor = await VendorModel.findById(req.body.vendor);
+    if (!vendor) throw new AppError(404, 'Specified vendor not found');
+    vendorId = vendor._id.toString();
+  } else {
+    const vendor = await VendorServices.getApprovedVendorByUserOrFail(req.user.id);
+    vendorId = vendor._id.toString();
+  }
+
+  // Strip vendor from body — service already takes vendorId separately
+  const { vendor: _, ...productInput } = req.body;
+  const result = await ProductServices.createProduct(vendorId, productInput, isAdmin);
+
   sendResponse(res, {
     statusCode: 201,
     success: true,
-    message: 'Product submitted for approval',
+    message: isAdmin ? 'Product created and approved' : 'Product submitted for approval',
     data: result,
   });
 });

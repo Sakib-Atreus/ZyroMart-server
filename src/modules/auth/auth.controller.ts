@@ -2,9 +2,13 @@ import catchAsync from '../../utility/catchAsync'
 import sendResponse from '../../utility/sendResponse'
 import { AuthServices } from './auth.service'
 
-// signup user
+// signup user — role is always 'user' for public signups.
+// Admins are seeded at boot; vendors are promoted by an admin approval.
 const registeredUser = catchAsync(async (req, res) => {
-  const result = await AuthServices.registeredUserIntoDB(req.body)
+  const result = await AuthServices.registeredUserIntoDB({
+    ...req.body,
+    role: 'user',
+  })
   sendResponse(res, {
     success: true,
     statusCode: 200,

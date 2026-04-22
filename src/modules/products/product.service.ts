@@ -21,7 +21,11 @@ type CreateProductInput = Partial<IProduct> & {
   attributes?: Record<string, unknown>;
 };
 
-const createProduct = async (vendorId: string, input: CreateProductInput) => {
+const createProduct = async (
+  vendorId: string,
+  input: CreateProductInput,
+  autoApprove = false,
+) => {
   const category = await CategoryModel.findById(input.category).lean();
   if (!category) throw new AppError(404, 'Category not found');
   if (!category.isActive) throw new AppError(400, 'Category is inactive');
@@ -42,7 +46,7 @@ const createProduct = async (vendorId: string, input: CreateProductInput) => {
     slug,
     vendor: vendorId,
     currency: input.currency ?? config.default_currency,
-    status: 'pending',
+    status: autoApprove ? 'approved' : 'pending',
   });
   return doc;
 };

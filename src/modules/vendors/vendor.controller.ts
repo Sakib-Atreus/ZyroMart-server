@@ -63,6 +63,29 @@ const changeVendorStatus = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const adminListVendors = catchAsync(async (req: Request, res: Response) => {
+  const { vendors, statusCounts } = await VendorServices.adminListVendors({
+    status: req.query.status as string | undefined,
+    searchTerm: req.query.searchTerm as string | undefined,
+  });
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'Vendors fetched (admin)',
+    data: { vendors, statusCounts },
+  });
+});
+
+const adminCreateVendor = catchAsync(async (req: Request, res: Response) => {
+  const result = await VendorServices.adminCreateVendor(req.body);
+  sendResponse(res, {
+    statusCode: 201,
+    success: true,
+    message: 'Vendor created and approved',
+    data: result,
+  });
+});
+
 export const VendorControllers = {
   applyAsVendor,
   getMyVendorProfile,
@@ -70,4 +93,6 @@ export const VendorControllers = {
   getAllVendors,
   getVendorBySlug,
   changeVendorStatus,
+  adminListVendors,
+  adminCreateVendor,
 };

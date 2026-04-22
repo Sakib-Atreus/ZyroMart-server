@@ -63,6 +63,69 @@ const getApprovedVendorByUserOrFail = async (userId: string) => {
   return vendor;
 };
 
+// Admin: list every vendor regardless of status, with optional filter + counts
+const adminListVendors = async (query: { status?: string; searchTerm?: string }) => {
+  const filter: Record<string, unknown> = {};
+  if (query.status && query.status !== 'all') filter.status = query.status;
+  if (query.searchTerm) {
+    filter.$or = [
+      { shopName: { $regex: query.searchTerm, $options: 'i' } },
+      { slug: { $regex: query.searchTerm, $options: 'i' } },
+      { 'contact.email': { $regex: query.searchTerm, $options: 'i' } },
+    ];
+  }
+
+  const [vendors, counts] = await Promise.all([
+    VendorModel.find(filter)
+      .populate('user', 'name email phone')
+      .sort({ createdAt: -1 })
+      .lean(),
+    VendorModel.aggregate([
+      { $group: { _id: '$status', count: { $sum: 1 } } },
+    ]),
+  ]);
+
+  const statusCounts = counts.reduce(
+    (acc: Record<string, number>, cur: { _id: string; count: number }) => {
+      acc[cur._id] = cur.count;
+      return acc;
+    },
+    { pending: 0, approved: 0, rejected: 0, suspended: 0 },
+  );
+
+  return { vendors, statusCounts };
+};
+
+// Admin: create a vendor directly for an existing user (skips application flow).
+// Auto-approves and promotes the user's role to 'vendor'.
+const adminCreateVendor = async (payload: {
+  user: string;
+  shopName: string;
+  description?: string;
+  logo?: string;
+  banner?: string;
+  address: IVendor['address'];
+  contact: IVendor['contact'];
+  commissionRate?: number;
+}) => {
+  const user = await User.findById(payload.user);
+  if (!user || user.isDeleted) throw new AppError(404, 'User not found');
+
+  const existing = await VendorModel.findOne({ user: payload.user });
+  if (existing) throw new AppError(409, 'User already has a vendor profile');
+
+  const slug = await generateUniqueSlug(payload.shopName, VendorModel);
+  const vendor = await VendorModel.create({
+    ...payload,
+    slug,
+    status: 'approved',
+    commissionRate: payload.commissionRate ?? 0.08,
+  });
+
+  await User.findByIdAndUpdate(payload.user, { role: USER_ROLE.vendor });
+  return vendor;
+};
+
 export const VendorServices = {
   applyAsVendor,
   getMyVendorProfile,
@@ -71,4 +134,6 @@ export const VendorServices = {
   getVendorBySlug,
   changeVendorStatus,
   getApprovedVendorByUserOrFail,
+  adminListVendors,
+  adminCreateVendor,
 };

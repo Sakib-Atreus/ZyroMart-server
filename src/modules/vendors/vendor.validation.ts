@@ -43,3 +43,24 @@ export const changeVendorStatusSchema = z.object({
   }),
   params: z.object({ id: objectId }),
 });
+
+export const adminCreateVendorSchema = z.object({
+  body: z.object({
+    user: objectId,
+    shopName: z.string().min(2).max(80),
+    description: z.string().max(1000).optional(),
+    logo: z.string().url().optional(),
+    banner: z.string().url().optional(),
+    address: z.object({
+      line1: z.string().min(2),
+      city: z.string().min(2),
+      country: z.string().min(2),
+      postalCode: z.string().optional(),
+    }),
+    contact: z.object({
+      email: z.string().email(),
+      phone: z.string().optional(),
+    }),
+    commissionRate: z.number().min(0).max(1).optional(),
+  }),
+});

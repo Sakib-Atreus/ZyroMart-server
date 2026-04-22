@@ -23,7 +23,21 @@ const updateMe = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const adminList = catchAsync(async (req: Request, res: Response) => {
+  const { data, meta } = await UserServices.adminList(
+    req.query as Record<string, unknown>,
+  );
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'Users fetched',
+    data,
+    meta,
+  });
+});
+
 export const UserControllers = {
   getMe,
   updateMe,
+  adminList,
 };

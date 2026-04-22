@@ -1,4 +1,5 @@
 import AppError from '../../Error/AppError';
+import QueryBuilder from '../../utility/QueryBuilder';
 import User from './user.model';
 
 type UpdatableUserFields = {
@@ -22,7 +23,27 @@ const updateMe = async (userId: string, payload: UpdatableUserFields) => {
   return user;
 };
 
+// Admin: paginated/searchable user list for admin tools (selectors, user mgmt)
+const adminList = async (query: Record<string, unknown>) => {
+  const builder = new QueryBuilder(
+    User.find({ isDeleted: { $ne: true } }),
+    query,
+  )
+    .search(['name', 'email', 'phone'])
+    .filter()
+    .sort()
+    .paginate()
+    .fields();
+
+  const [data, meta] = await Promise.all([
+    builder.modelQuery.select('-password').lean(),
+    builder.countTotal(),
+  ]);
+  return { data, meta };
+};
+
 export const UserServices = {
   getMe,
   updateMe,
+  adminList,
 };

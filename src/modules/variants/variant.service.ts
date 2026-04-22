@@ -82,7 +82,7 @@ const generateBulkVariants = async (
   input: {
     product: string;
     defaults: { price: number; compareAtPrice?: number; stock: number };
-    overrides: {
+    overrides?: {
       options: Record<string, string>;
       price?: number;
       compareAtPrice?: number;
@@ -99,34 +99,39 @@ const generateBulkVariants = async (
 
   const combinations = cartesian(product.variantOptions);
   const overrideByHash = new Map(
-    input.overrides.map(o => [hashOptions(o.options), o]),
+    (input.overrides ?? []).map(o => [hashOptions(o.options), o]),
   );
 
-  const docs = combinations.map(options => {
-    const optionsHash = hashOptions(options);
-    const override = overrideByHash.get(optionsHash);
-    const sku =
-      override?.sku ||
-      `${product.slug.toUpperCase().slice(0, 8)}-${optionsHash.slice(0, 8)}`;
-    return {
-      product: product._id,
-      sku,
-      options,
-      optionsHash,
-      price: override?.price ?? input.defaults.price,
-      compareAtPrice: override?.compareAtPrice ?? input.defaults.compareAtPrice,
-      stock: override?.stock ?? input.defaults.stock,
-      reservedStock: 0,
-      isActive: true,
-    };
-  });
+  // Idempotent: skip combinations that already have a variant
+  const existing = await VariantModel.find({ product: product._id })
+    .select('optionsHash')
+    .lean();
+  const existingHashes = new Set(existing.map(v => v.optionsHash));
 
-  const created = await VariantModel.insertMany(docs, { ordered: false }).catch(
-    (err: { writeErrors?: unknown[]; insertedDocs?: unknown[] }) => {
-      if (err?.writeErrors) return (err.insertedDocs ?? []) as typeof docs;
-      throw err;
-    },
-  );
+  const docs = combinations
+    .filter(options => !existingHashes.has(hashOptions(options)))
+    .map(options => {
+      const optionsHash = hashOptions(options);
+      const override = overrideByHash.get(optionsHash);
+      const sku =
+        override?.sku ||
+        `${product.slug.toUpperCase().slice(0, 8)}-${optionsHash.slice(0, 8)}`;
+      return {
+        product: product._id,
+        sku,
+        options,
+        optionsHash,
+        price: override?.price ?? input.defaults.price,
+        compareAtPrice: override?.compareAtPrice ?? input.defaults.compareAtPrice,
+        stock: override?.stock ?? input.defaults.stock,
+        reservedStock: 0,
+        isActive: true,
+      };
+    });
+
+  if (docs.length === 0) return [];
+
+  const created = await VariantModel.insertMany(docs);
   return created;
 };
 

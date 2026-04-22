@@ -13,6 +13,7 @@ const variantOptionDeclaration = z.object({
 
 const productBodySchema = z
   .object({
+    vendor: objectId.optional(), // admin-only; ignored for vendor callers
     category: objectId,
     name: z.string().min(2).max(200),
     brand: z.string().min(1).max(60),

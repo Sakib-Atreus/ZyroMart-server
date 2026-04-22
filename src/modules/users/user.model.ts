@@ -29,6 +29,8 @@ const userSchema = new Schema<TUser>(
     role: {
       type: String,
       enum: nameEnum,
+      default: 'user',
+      required: true,
     },
     address: {
       type: String,
