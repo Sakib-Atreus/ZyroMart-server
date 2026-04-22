@@ -2,6 +2,8 @@ import { Request, Response } from 'express';
 import catchAsync from '../../utility/catchAsync';
 import sendResponse from '../../utility/sendResponse';
 import { OrderServices } from './order.service';
+import { streamInvoicePDF } from './invoice';
+import { IOrder } from './order.interface';
 
 const createOrder = catchAsync(async (req: Request, res: Response) => {
   const result = await OrderServices.createOrderFromCart(req.user.id, req.body);
@@ -96,6 +98,19 @@ const getAllOrders = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+/**
+ * Stream an invoice PDF.
+ * Reuses getOrderById for access control — vendors receive an order filtered to
+ * their own items, which becomes a per-vendor invoice.
+ */
+const downloadInvoice = catchAsync(async (req: Request, res: Response) => {
+  const order = (await OrderServices.getOrderById(req.params.id, {
+    id: req.user.id,
+    role: req.user.role,
+  })) as IOrder;
+  streamInvoicePDF(order, res);
+});
+
 export const OrderControllers = {
   createOrder,
   getMyOrders,
@@ -104,4 +119,5 @@ export const OrderControllers = {
   updateOrderStatus,
   getVendorOrders,
   getAllOrders,
+  downloadInvoice,
 };

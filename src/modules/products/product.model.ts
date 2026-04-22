@@ -57,6 +57,17 @@ const ProductSchema = new Schema<IProduct>(
 ProductSchema.index({ vendor: 1, status: 1 });
 ProductSchema.index({ category: 1, status: 1 });
 ProductSchema.index({ status: 1, createdAt: -1 });
-ProductSchema.index({ name: 'text', description: 'text', tags: 'text' });
+
+// Single text index (Mongo allows only one per collection).
+// Weights bias matches on `name` above description. If this collection already
+// has an older `name_text_description_text_tags_text` index on a running DB,
+// drop it once before deploy:  db.products.dropIndex('name_text_description_text_tags_text')
+ProductSchema.index(
+  { name: 'text', brand: 'text', tags: 'text', description: 'text' },
+  {
+    name: 'product_text_search',
+    weights: { name: 10, brand: 5, tags: 3, description: 1 },
+  },
+);
 
 export const ProductModel = model<IProduct>('Product', ProductSchema);

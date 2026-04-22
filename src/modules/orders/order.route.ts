@@ -58,4 +58,12 @@ router.patch(
   OrderControllers.updateOrderStatus,
 );
 
+// PDF invoice — same access control as GET /:id
+router.get(
+  '/:id/invoice',
+  auth(USER_ROLE.user, USER_ROLE.vendor, USER_ROLE.admin),
+  validateRequest(orderIdParamsSchema),
+  OrderControllers.downloadInvoice,
+);
+
 export const OrderRoute = router;

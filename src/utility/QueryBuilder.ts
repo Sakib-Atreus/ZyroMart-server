@@ -26,6 +26,21 @@ class QueryBuilder<T> {
     return this;
   }
 
+  /**
+   * Use a MongoDB text index ($text) for search. Much faster than regex but
+   * requires the model to have a text index declared. Falls back silently if
+   * the index isn't present (MongoDB will throw — caller should ensure it exists).
+   */
+  textSearch() {
+    const term = this.query.searchTerm as string | undefined;
+    if (term && term.trim()) {
+      this.modelQuery = this.modelQuery.find({
+        $text: { $search: term },
+      } as FilterQuery<T>);
+    }
+    return this;
+  }
+
   filter() {
     const exclude = ['searchTerm', 'sort', 'limit', 'page', 'fields'];
     const filters: Record<string, any> = { ...this.query };

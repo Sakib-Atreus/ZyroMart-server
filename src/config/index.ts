@@ -16,4 +16,5 @@ export default {
   stripe_webhook_secret: process.env.STRIPE_WEBHOOK_SECRET,
   client_url: process.env.CLIENT_URL || 'http://localhost:5173',
   default_currency: process.env.DEFAULT_CURRENCY || 'BDT',
+  redis_url: process.env.REDIS_URL, // optional; if unset, caching is disabled
 };
