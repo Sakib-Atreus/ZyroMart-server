@@ -10,6 +10,8 @@ import { OrderRoute } from '../modules/orders/order.route';
 import { PaymentRoute } from '../modules/payments/payment.route';
 import { ReviewRoute } from '../modules/reviews/review.route';
 import { QuestionRoute } from '../modules/questions/question.route';
+import { WishlistRoute } from '../modules/wishlists/wishlist.route';
+import { AnalyticsRoute } from '../modules/analytics/analytics.route';
 
 const router = Router();
 
@@ -25,6 +27,8 @@ const moduleRoutes = [
   { path: '/payments', route: PaymentRoute },
   { path: '/reviews', route: ReviewRoute },
   { path: '/questions', route: QuestionRoute },
+  { path: '/wishlist', route: WishlistRoute },
+  { path: '/analytics', route: AnalyticsRoute },
 ];
 
 moduleRoutes.forEach(r => router.use(r.path, r.route));

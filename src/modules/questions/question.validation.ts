@@ -1,21 +1,28 @@
-import { z } from "zod";
+import { z } from 'zod';
+import { Types } from 'mongoose';
 
-// Schema for creating a question
-const questionValidationSchema = z.object({
-  productId: z.string().nonempty("Product ID is required!"),
-  userId: z.string().nonempty("User ID is required!"),
-  question: z.string().min(5, "Question must be at least 3 characters long!"),
-  createdAt: z.date().default(() => new Date()),
+const objectId = z
+  .string()
+  .refine(v => Types.ObjectId.isValid(v), { message: 'Invalid ObjectId' });
+
+export const createQuestionSchema = z.object({
+  body: z.object({
+    product: objectId,
+    question: z.string().min(3).max(2000),
+  }),
 });
 
-// Schema for answering a question (only admin)
-const answerQuestionValidationSchema = z.object({
-  answer: z.string().min(1, "Answer cannot be empty!"),
+export const answerQuestionSchema = z.object({
+  body: z.object({
+    answer: z.string().min(1).max(2000),
+  }),
+  params: z.object({ id: objectId }),
 });
 
-// making the entire product schema optional
-const partialQuestionValidationSchema = questionValidationSchema.partial();
-const partialAnswerQuestionValidationSchema = answerQuestionValidationSchema.partial();
+export const questionIdParamsSchema = z.object({
+  params: z.object({ id: objectId }),
+});
 
-// export this validation schema for using another file
-export { questionValidationSchema, answerQuestionValidationSchema, partialQuestionValidationSchema, partialAnswerQuestionValidationSchema };
+export const questionByProductParamsSchema = z.object({
+  params: z.object({ productId: objectId }),
+});

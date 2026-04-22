@@ -1,23 +1,30 @@
-import { z } from "zod";
+import { z } from 'zod';
+import { Types } from 'mongoose';
 
-// Zod schema for the Review interface
-const reviewValidationSchema = z.object({
-    productId: z
-    .string()
-    .nonempty("Product ID is required!"),
-    userId: z
-    .string()
-    .nonempty("User ID is required!"),
-    rating: z
-        .number()
-        .min(1, "Rating must be at least 1")
-        .max(5, "Rating must not exceed 5"),
-    comment: z.string().nonempty("Comment is required!"),
-    createdAt: z.date().default(() => new Date()), // current date
+const objectId = z
+  .string()
+  .refine(v => Types.ObjectId.isValid(v), { message: 'Invalid ObjectId' });
+
+export const createReviewSchema = z.object({
+  body: z.object({
+    product: objectId,
+    rating: z.number().int().min(1).max(5),
+    comment: z.string().min(3).max(2000),
+  }),
 });
 
-// making the entire review schema optional
-const partialReviewValidationSchema = reviewValidationSchema.partial();
+export const updateReviewSchema = z.object({
+  body: z.object({
+    rating: z.number().int().min(1).max(5).optional(),
+    comment: z.string().min(3).max(2000).optional(),
+  }),
+  params: z.object({ id: objectId }),
+});
 
-// export validation schema
-export { reviewValidationSchema, partialReviewValidationSchema };
+export const reviewIdParamsSchema = z.object({
+  params: z.object({ id: objectId }),
+});
+
+export const reviewByProductParamsSchema = z.object({
+  params: z.object({ productId: objectId }),
+});
