@@ -26,4 +26,10 @@ router.patch(
   UserControllers.updateMe,
 );
 
+router.get(
+  '/dashboard',
+  auth(USER_ROLE.user, USER_ROLE.vendor, USER_ROLE.admin),
+  UserControllers.getDashboard,
+);
+
 export const UserRoute = router;

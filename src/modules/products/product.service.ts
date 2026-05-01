@@ -356,6 +356,85 @@ const getVendorProducts = async (vendorId: string, query: Record<string, unknown
   return { data, meta };
 };
 
+const getNewArrivals = async (limit = 12) => {
+  const cacheKey = `products:new-arrivals:${limit}`;
+  const hit = await cache.get<unknown[]>(cacheKey);
+  if (hit) return hit;
+
+  const data = await ProductModel.find({ status: 'approved', isDeleted: false })
+    .sort({ createdAt: -1 })
+    .limit(limit)
+    .populate('category', 'name slug')
+    .select('name slug brand thumbnail basePrice compareAtPrice currency averageRating reviewCount createdAt isOnlineExclusive')
+    .lean();
+
+  await cache.set(cacheKey, data, 300);
+  return data;
+};
+
+const getTopSelling = async (limit = 12) => {
+  const cacheKey = `products:top-selling:${limit}`;
+  const hit = await cache.get<unknown[]>(cacheKey);
+  if (hit) return hit;
+
+  const data = await ProductModel.find({ status: 'approved', isDeleted: false })
+    .sort({ totalSold: -1 })
+    .limit(limit)
+    .populate('category', 'name slug')
+    .select('name slug brand thumbnail basePrice compareAtPrice currency averageRating reviewCount totalSold isOnlineExclusive')
+    .lean();
+
+  await cache.set(cacheKey, data, 300);
+  return data;
+};
+
+const getOnlineExclusive = async (limit = 12) => {
+  const cacheKey = `products:online-exclusive:${limit}`;
+  const hit = await cache.get<unknown[]>(cacheKey);
+  if (hit) return hit;
+
+  const data = await ProductModel.find({
+    status: 'approved',
+    isDeleted: false,
+    isOnlineExclusive: true,
+  })
+    .sort({ createdAt: -1 })
+    .limit(limit)
+    .populate('category', 'name slug')
+    .select('name slug brand thumbnail basePrice compareAtPrice currency averageRating reviewCount isOnlineExclusive')
+    .lean();
+
+  await cache.set(cacheKey, data, 300);
+  return data;
+};
+
+const getSimilarProducts = async (productId: string, limit = 8) => {
+  const cacheKey = `products:similar:${productId}:${limit}`;
+  const hit = await cache.get<unknown[]>(cacheKey);
+  if (hit) return hit;
+
+  const product = await ProductModel.findById(productId).lean();
+  if (!product || product.isDeleted) throw new AppError(404, 'Product not found');
+
+  const data = await ProductModel.find({
+    _id: { $ne: product._id },
+    status: 'approved',
+    isDeleted: false,
+    $or: [
+      { category: product.category },
+      { tags: { $in: (product.tags ?? []) } },
+      { brand: product.brand },
+    ],
+  })
+    .sort({ averageRating: -1, totalSold: -1 })
+    .limit(limit)
+    .select('name slug brand thumbnail basePrice compareAtPrice currency averageRating reviewCount')
+    .lean();
+
+  await cache.set(cacheKey, data, 300);
+  return data;
+};
+
 export const ProductServices = {
   createProduct,
   updateProduct,
@@ -365,5 +444,9 @@ export const ProductServices = {
   getProductBySlug,
   getProductById,
   getVendorProducts,
+  getNewArrivals,
+  getTopSelling,
+  getOnlineExclusive,
+  getSimilarProducts,
   invalidateProductCache,
 };

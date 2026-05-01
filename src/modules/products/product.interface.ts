@@ -8,6 +8,12 @@ export interface IVariantOptionDeclaration {
   values: string[];
 }
 
+export interface IEmiOption {
+  months: number;
+  monthlyRate: number; // flat monthly interest rate, e.g. 0.01 = 1%
+  minAmount: number;
+}
+
 export interface IProduct {
   vendor: Types.ObjectId;
   category: Types.ObjectId;
@@ -32,6 +38,13 @@ export interface IProduct {
 
   tags: string[];
   warranty?: string;
+
+  emiOptions: IEmiOption[];
+
+  isGift: boolean;
+  giftMessage?: string;
+
+  isOnlineExclusive: boolean;
 
   status: TProductStatus;
   rejectionReason?: string;

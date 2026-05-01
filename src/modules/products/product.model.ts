@@ -1,5 +1,14 @@
 import { Schema, model } from 'mongoose';
-import { IProduct, IVariantOptionDeclaration } from './product.interface';
+import { IEmiOption, IProduct, IVariantOptionDeclaration } from './product.interface';
+
+const EmiOptionSchema = new Schema<IEmiOption>(
+  {
+    months: { type: Number, required: true, min: 1 },
+    monthlyRate: { type: Number, required: true, min: 0, max: 1 },
+    minAmount: { type: Number, required: true, min: 0 },
+  },
+  { _id: false },
+);
 
 const VariantOptionDeclarationSchema = new Schema<IVariantOptionDeclaration>(
   {
@@ -35,6 +44,11 @@ const ProductSchema = new Schema<IProduct>(
 
     tags: { type: [String], default: [] },
     warranty: { type: String },
+
+    emiOptions: { type: [EmiOptionSchema], default: [] },
+    isGift: { type: Boolean, default: false },
+    giftMessage: { type: String },
+    isOnlineExclusive: { type: Boolean, default: false, index: true },
 
     status: {
       type: String,

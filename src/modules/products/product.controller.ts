@@ -125,6 +125,30 @@ const getVendorProducts = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const getNewArrivals = catchAsync(async (req: Request, res: Response) => {
+  const limit = Math.min(50, Number(req.query.limit) || 12);
+  const result = await ProductServices.getNewArrivals(limit);
+  sendResponse(res, { statusCode: 200, success: true, message: 'New arrivals fetched', data: result });
+});
+
+const getTopSelling = catchAsync(async (req: Request, res: Response) => {
+  const limit = Math.min(50, Number(req.query.limit) || 12);
+  const result = await ProductServices.getTopSelling(limit);
+  sendResponse(res, { statusCode: 200, success: true, message: 'Top selling products fetched', data: result });
+});
+
+const getOnlineExclusive = catchAsync(async (req: Request, res: Response) => {
+  const limit = Math.min(50, Number(req.query.limit) || 12);
+  const result = await ProductServices.getOnlineExclusive(limit);
+  sendResponse(res, { statusCode: 200, success: true, message: 'Online exclusive products fetched', data: result });
+});
+
+const getSimilarProducts = catchAsync(async (req: Request, res: Response) => {
+  const limit = Math.min(20, Number(req.query.limit) || 8);
+  const result = await ProductServices.getSimilarProducts(req.params.id, limit);
+  sendResponse(res, { statusCode: 200, success: true, message: 'Similar products fetched', data: result });
+});
+
 export const ProductControllers = {
   createProduct,
   updateProduct,
@@ -133,4 +157,8 @@ export const ProductControllers = {
   getAllProducts,
   getProductBySlug,
   getVendorProducts,
+  getNewArrivals,
+  getTopSelling,
+  getOnlineExclusive,
+  getSimilarProducts,
 };

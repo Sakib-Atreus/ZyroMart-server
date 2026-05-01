@@ -45,7 +45,7 @@ const getOrderById = catchAsync(async (req: Request, res: Response) => {
 const cancelOrder = catchAsync(async (req: Request, res: Response) => {
   const result = await OrderServices.cancelOrder(
     req.params.id,
-    req.user.id,
+    { id: req.user.id, role: req.user.role },
     req.body?.reason,
   );
   sendResponse(res, {

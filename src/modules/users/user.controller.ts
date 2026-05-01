@@ -36,8 +36,19 @@ const adminList = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const getDashboard = catchAsync(async (req: Request, res: Response) => {
+  const result = await UserServices.getDashboard(req.user.id);
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'Dashboard fetched',
+    data: result,
+  });
+});
+
 export const UserControllers = {
   getMe,
   updateMe,
   adminList,
+  getDashboard,
 };

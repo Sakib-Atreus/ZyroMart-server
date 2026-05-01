@@ -12,6 +12,7 @@ import { ReviewRoute } from '../modules/reviews/review.route';
 import { QuestionRoute } from '../modules/questions/question.route';
 import { WishlistRoute } from '../modules/wishlists/wishlist.route';
 import { AnalyticsRoute } from '../modules/analytics/analytics.route';
+import { ChatRoute } from '../modules/chat/chat.route';
 
 const router = Router();
 
@@ -29,6 +30,7 @@ const moduleRoutes = [
   { path: '/questions', route: QuestionRoute },
   { path: '/wishlist', route: WishlistRoute },
   { path: '/analytics', route: AnalyticsRoute },
+  { path: '/chat', route: ChatRoute },
 ];
 
 moduleRoutes.forEach(r => router.use(r.path, r.route));

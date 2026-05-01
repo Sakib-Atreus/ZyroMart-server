@@ -33,7 +33,6 @@ const createOrderFromCart = async (
     shippingAddress: IAddress;
     billingAddress?: IAddress;
     paymentMethod: TPaymentMethod;
-    discount?: number;
   },
 ) => {
   const session = await mongoose.startSession();
@@ -110,7 +109,9 @@ const createOrderFromCart = async (
 
     const shippingFee = calculateShipping(input.shippingAddress, orderItems);
     const tax = calculateTax(subtotal);
-    const discount = input.discount ?? 0;
+    // Discount must come from a validated coupon — never trust the client value.
+    // When coupon support is added, resolve it server-side here.
+    const discount = 0;
     const total = Math.max(0, subtotal + shippingFee + tax - discount);
 
     const [order] = await OrderModel.create(
@@ -204,11 +205,19 @@ const getOrderById = async (orderId: string, viewer: { id: string; role: string 
   throw new AppError(403, 'Forbidden');
 };
 
-const cancelOrder = async (orderId: string, userId: string, reason?: string) => {
+const cancelOrder = async (
+  orderId: string,
+  actor: { id: string; role: string },
+  reason?: string,
+) => {
   const session = await mongoose.startSession();
   session.startTransaction();
   try {
-    const order = await OrderModel.findOne({ _id: orderId, user: userId }).session(session);
+    const query =
+      actor.role === 'admin'
+        ? { _id: orderId }
+        : { _id: orderId, user: actor.id };
+    const order = await OrderModel.findOne(query).session(session);
     if (!order) throw new AppError(404, 'Order not found');
     if (!['pending', 'paid', 'processing'].includes(order.status)) {
       throw new AppError(400, `Cannot cancel order in status '${order.status}'`);

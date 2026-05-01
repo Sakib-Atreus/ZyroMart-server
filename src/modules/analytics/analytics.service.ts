@@ -1,3 +1,4 @@
+import { Types } from 'mongoose';
 import { CategoryModel } from '../categories/category.model';
 import { OrderModel } from '../orders/order.model';
 import { ProductModel } from '../products/product.model';
@@ -122,19 +123,20 @@ const getPlatformOverview = async () => {
  * Vendor-scoped analytics — restricted to the caller's own vendor profile.
  */
 const getVendorOverview = async (vendorId: string) => {
+  const vendorObjId = new Types.ObjectId(vendorId);
   const [ownProducts, ownOrders, revenueAgg, topProducts] = await Promise.all([
     ProductModel.aggregate([
-      { $match: { vendor: { $eq: vendorId } } },
+      { $match: { vendor: vendorObjId } },
       { $group: { _id: '$status', count: { $sum: 1 } } },
     ]),
     OrderModel.aggregate([
-      { $match: { 'items.vendor': { $eq: vendorId } } },
+      { $match: { 'items.vendor': vendorObjId } },
       { $group: { _id: '$status', count: { $sum: 1 } } },
     ]),
     OrderModel.aggregate([
       { $match: { paymentStatus: 'paid' } },
       { $unwind: '$items' },
-      { $match: { 'items.vendor': { $eq: vendorId } } },
+      { $match: { 'items.vendor': vendorObjId } },
       {
         $group: {
           _id: null,
@@ -143,7 +145,7 @@ const getVendorOverview = async (vendorId: string) => {
         },
       },
     ]),
-    ProductModel.find({ vendor: vendorId, isDeleted: false })
+    ProductModel.find({ vendor: vendorObjId, isDeleted: false })
       .sort({ totalSold: -1 })
       .limit(5)
       .select('name slug thumbnail totalSold averageRating reviewCount status')

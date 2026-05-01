@@ -14,6 +14,10 @@ const router = express.Router();
 
 // public
 router.get('/', ProductControllers.getAllProducts);
+router.get('/featured/new-arrivals', ProductControllers.getNewArrivals);
+router.get('/featured/top-selling', ProductControllers.getTopSelling);
+router.get('/featured/online-exclusive', ProductControllers.getOnlineExclusive);
+router.get('/similar/:id', ProductControllers.getSimilarProducts);
 
 // vendor dashboard
 router.get(
@@ -22,7 +26,7 @@ router.get(
   ProductControllers.getVendorProducts,
 );
 
-// public detail
+// public detail — must be last so named segments above take priority
 router.get('/:slug', ProductControllers.getProductBySlug);
 
 // vendor write
