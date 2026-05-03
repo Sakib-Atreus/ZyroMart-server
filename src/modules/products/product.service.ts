@@ -307,6 +307,14 @@ const listWithVariantFilter = async (
   };
 };
 
+/** Safely convert a Mongoose Map (or already-plain object) to a plain Record. */
+const mapToObj = (val: unknown): Record<string, unknown> => {
+  if (!val) return {};
+  if (val instanceof Map) return Object.fromEntries(val);
+  if (typeof val === 'object') return val as Record<string, unknown>;
+  return {};
+};
+
 const getProductBySlug = async (slug: string) => {
   const cacheKey = `products:slug:${slug}`;
   const hit = await cache.get<unknown>(cacheKey);
@@ -327,7 +335,17 @@ const getProductBySlug = async (slug: string) => {
     isActive: true,
   }).lean();
 
-  const result = { ...product, variants };
+  // Normalize Mongoose Map fields to plain objects for JSON serialization
+  const serializedVariants = variants.map(v => ({
+    ...v,
+    options: mapToObj(v.options),
+  }));
+
+  const result = {
+    ...product,
+    attributes: mapToObj(product.attributes),
+    variants: serializedVariants,
+  };
   await cache.set(cacheKey, result, 300);
   return result;
 };
