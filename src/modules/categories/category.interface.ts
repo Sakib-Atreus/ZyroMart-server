@@ -22,4 +22,6 @@ export interface ICategory {
   icon?: string;
   attributeSchema: IAttributeDef[];
   isActive: boolean;
+  isFeatured: boolean;
+  sortOrder: number;
 }

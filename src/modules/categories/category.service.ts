@@ -21,8 +21,20 @@ const getAllCategories = async () => {
   const hit = await cache.get<unknown[]>(CACHE_ALL_KEY);
   if (hit) return hit;
 
-  const data = await CategoryModel.find({ isActive: true }).sort({ name: 1 }).lean();
+  const data = await CategoryModel.find({ isActive: true }).sort({ sortOrder: 1, name: 1 }).lean();
   await cache.set(CACHE_ALL_KEY, data, CACHE_TTL);
+  return data;
+};
+
+const getFeaturedCategories = async () => {
+  const key = 'categories:featured';
+  const hit = await cache.get<unknown[]>(key);
+  if (hit) return hit;
+
+  const data = await CategoryModel.find({ isActive: true, isFeatured: true })
+    .sort({ sortOrder: 1 })
+    .lean();
+  await cache.set(key, data, CACHE_TTL);
   return data;
 };
 
@@ -71,6 +83,7 @@ const deleteCategory = async (id: string) => {
 export const CategoryServices = {
   createCategory,
   getAllCategories,
+  getFeaturedCategories,
   getCategoryBySlug,
   getCategoryById,
   updateCategory,

@@ -29,6 +29,8 @@ const CategorySchema = new Schema<ICategory>(
     icon: { type: String },
     attributeSchema: { type: [AttributeDefSchema], default: [] },
     isActive: { type: Boolean, default: true },
+    isFeatured: { type: Boolean, default: false, index: true },
+    sortOrder: { type: Number, default: 0, index: true },
   },
   { timestamps: true, versionKey: false },
 );

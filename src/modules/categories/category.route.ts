@@ -12,6 +12,7 @@ import {
 const router = express.Router();
 
 router.get('/', CategoryControllers.getAllCategories);
+router.get('/featured', CategoryControllers.getFeaturedCategories);
 router.get('/:slug', CategoryControllers.getCategoryBySlug);
 
 router.post(

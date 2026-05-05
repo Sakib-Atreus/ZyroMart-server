@@ -198,7 +198,7 @@ const listSimple = async (
   const hasSearch = typeof query.searchTerm === 'string' && query.searchTerm.trim().length > 0;
 
   const builder = new QueryBuilder(ProductModel.find(baseFilter), query);
-  if (hasSearch) builder.textSearch();
+  if (hasSearch) builder.search(['name', 'brand', 'tags', 'shortDescription']);
   builder.filter().sort().fields().paginate();
 
   const [data, meta] = await Promise.all([

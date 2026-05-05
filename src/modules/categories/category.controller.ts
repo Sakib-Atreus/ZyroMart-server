@@ -53,9 +53,20 @@ const deleteCategory = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const getFeaturedCategories = catchAsync(async (_req: Request, res: Response) => {
+  const result = await CategoryServices.getFeaturedCategories();
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'Featured categories fetched successfully',
+    data: result,
+  });
+});
+
 export const CategoryControllers = {
   createCategory,
   getAllCategories,
+  getFeaturedCategories,
   getCategoryBySlug,
   updateCategory,
   deleteCategory,
