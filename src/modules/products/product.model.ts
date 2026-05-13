@@ -71,6 +71,7 @@ const ProductSchema = new Schema<IProduct>(
 ProductSchema.index({ vendor: 1, status: 1 });
 ProductSchema.index({ category: 1, status: 1 });
 ProductSchema.index({ status: 1, createdAt: -1 });
+ProductSchema.index({ slug: 1, status: 1, isDeleted: 1 });
 
 // Single text index (Mongo allows only one per collection).
 // Weights bias matches on `name` above description. If this collection already

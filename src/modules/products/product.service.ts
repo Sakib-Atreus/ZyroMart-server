@@ -320,31 +320,52 @@ const getProductBySlug = async (slug: string) => {
   const hit = await cache.get<unknown>(cacheKey);
   if (hit) return hit;
 
-  const product = await ProductModel.findOne({
-    slug,
-    status: 'approved',
-    isDeleted: false,
-  })
-    .populate('category', 'name slug attributeSchema')
-    .populate('vendor', 'shopName slug logo rating')
-    .lean();
-  if (!product) throw new AppError(404, 'Product not found');
+  // Single aggregation — product + variants + category + vendor in one DB round trip
+  const rows = await ProductModel.aggregate([
+    { $match: { slug, status: 'approved', isDeleted: false } },
+    {
+      $lookup: {
+        from: 'variants',
+        let: { pid: '$_id' },
+        pipeline: [
+          { $match: { $expr: { $and: [{ $eq: ['$product', '$$pid'] }, { $eq: ['$isActive', true] }] } } },
+        ],
+        as: 'variants',
+      },
+    },
+    {
+      $lookup: {
+        from: 'categories',
+        localField: 'category',
+        foreignField: '_id',
+        pipeline: [{ $project: { name: 1, slug: 1, attributeSchema: 1 } }],
+        as: 'category',
+      },
+    },
+    { $unwind: { path: '$category', preserveNullAndEmptyArrays: true } },
+    {
+      $lookup: {
+        from: 'vendors',
+        localField: 'vendor',
+        foreignField: '_id',
+        pipeline: [{ $project: { shopName: 1, slug: 1, logo: 1, rating: 1 } }],
+        as: 'vendor',
+      },
+    },
+    { $unwind: { path: '$vendor', preserveNullAndEmptyArrays: true } },
+    { $limit: 1 },
+  ]);
 
-  const variants = await VariantModel.find({
-    product: product._id,
-    isActive: true,
-  }).lean();
+  if (!rows.length) throw new AppError(404, 'Product not found');
 
-  // Normalize Mongoose Map fields to plain objects for JSON serialization
-  const serializedVariants = variants.map(v => ({
-    ...v,
-    options: mapToObj(v.options),
-  }));
-
+  const raw = rows[0];
   const result = {
-    ...product,
-    attributes: mapToObj(product.attributes),
-    variants: serializedVariants,
+    ...raw,
+    attributes: mapToObj(raw.attributes),
+    variants: (raw.variants ?? []).map((v: Record<string, unknown>) => ({
+      ...v,
+      options: mapToObj(v.options),
+    })),
   };
   await cache.set(cacheKey, result, 300);
   return result;
