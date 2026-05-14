@@ -163,6 +163,20 @@ const changeProductStatus = async (
   return product;
 };
 
+/**
+ * Cast a query-string attribute value to its natural JS type so product-level
+ * attribute map comparisons work regardless of schema type.
+ * 'true'/'false' → boolean, numeric strings → number, everything else → string.
+ * Applied only to product-level (attrFilters) values — variant options are
+ * always stored as strings so they should NOT be cast.
+ */
+const castAttrValue = (v: string): string | boolean | number => {
+  if (v === 'true') return true;
+  if (v === 'false') return false;
+  const n = Number(v);
+  return !isNaN(n) && v.trim() !== '' ? n : v;
+};
+
 // --- Reads --------------------------------------------------------------------
 
 /**
@@ -254,14 +268,26 @@ const listSimple = async (
 ): Promise<ProductListResult> => {
   const baseFilter: Record<string, unknown> = { status: 'approved', isDeleted: false };
 
-  // Extract category here so QueryBuilder never sees it (it can't handle $in arrays)
+  // Extract category so QueryBuilder never sees it (it can't handle $in arrays).
+  // Then strip attrs/attrFilters — they are synthetic filter params that don't map to
+  // product fields; passing them through filter() would emit conditions like
+  // { attrFilters: 'os:Android' } that match no documents.
   const { category, ...queryWithoutCategory } = query;
+  delete queryWithoutCategory.attrs;
+  delete queryWithoutCategory.attrFilters;
   applyCategoryFilter(baseFilter, category);
 
-  // Product-level attribute filters (e.g. os, nfc, network) applied directly
+  // minRating → averageRating $gte (strip it so QueryBuilder never sees "minRating" as a field)
+  if (queryWithoutCategory.minRating) {
+    baseFilter.averageRating = { $gte: Number(queryWithoutCategory.minRating) };
+    delete queryWithoutCategory.minRating;
+  }
+
+  // Product-level attribute filters — cast values to their natural types so boolean/number
+  // attributes stored in the Map compare correctly (e.g. nfc: true, not nfc: 'true')
   if (productLevelAttrs) {
     for (const [k, v] of Object.entries(productLevelAttrs)) {
-      baseFilter[`attributes.${k}`] = v.length === 1 ? v[0] : { $in: v };
+      baseFilter[`attributes.${k}`] = v.length === 1 ? castAttrValue(v[0]) : { $in: v.map(castAttrValue) };
     }
   }
 
@@ -311,12 +337,26 @@ const listWithVariantFilter = async (
     baseMatch.basePrice = range;
   }
 
-  // Product-level attribute filters (e.g. os, nfc, network) applied to baseMatch
-  // so they filter ALL products regardless of variant status
+  // Product-level attribute filters — cast to natural types (boolean/number)
   if (productLevelAttrs) {
     for (const [k, v] of Object.entries(productLevelAttrs)) {
-      baseMatch[`attributes.${k}`] = v.length === 1 ? v[0] : { $in: v };
+      baseMatch[`attributes.${k}`] = v.length === 1 ? castAttrValue(v[0]) : { $in: v.map(castAttrValue) };
     }
+  }
+
+  // isOnlineExclusive (was silently ignored in this path before)
+  if (query.isOnlineExclusive === 'true' || query.isOnlineExclusive === true) {
+    baseMatch.isOnlineExclusive = true;
+  }
+
+  // minRating → averageRating $gte
+  if (query.minRating) {
+    baseMatch.averageRating = { $gte: Number(query.minRating) };
+  }
+
+  // Text search — must be in the first $match stage to use the text index
+  if (typeof query.searchTerm === 'string' && query.searchTerm.trim()) {
+    baseMatch.$text = { $search: query.searchTerm.trim() };
   }
 
   // Variant conditions: each attr uses $eq (single value) or $in (multiple values)
