@@ -13,7 +13,8 @@
     "prettier:fix": "npx prettier --write src",
     "test": "echo \"Error: no test specified\" && exit 1",
     "seed": "ts-node --transpile-only src/modules/users/seeders/seedAll.ts",
-    "seed2": "ts-node --transpile-only src/modules/users/seeders/seedProducts2.ts"
+    "seed2": "ts-node --transpile-only src/modules/users/seeders/seedProducts2.ts",
+    "seed3": "ts-node --transpile-only src/modules/users/seeders/seedProducts3.ts"
   },
   "keywords": [],
   "author": "",

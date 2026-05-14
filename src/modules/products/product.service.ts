@@ -29,26 +29,26 @@ const invalidateProductCache = () => cache.delPattern('products:*');
 
 // --- Query parsing ------------------------------------------------------------
 /**
- * Parse `?attrs=color:Black,ram:8GB` into `{ color: 'Black', ram: '8GB' }`.
+ * Parse `?attrs=color:Black|Blue,ram:8GB` into `{ color: ['Black','Blue'], ram: ['8GB'] }`.
+ * Pipe (`|`) separates multiple values for the same key.
  * Also accepts the same input passed as an already-decoded object.
  */
-const parseAttrsQuery = (raw: unknown): Record<string, string> | null => {
+const parseAttrsQuery = (raw: unknown): Record<string, string[]> | null => {
   if (!raw) return null;
   if (typeof raw === 'object' && !Array.isArray(raw)) {
     const entries = Object.entries(raw as Record<string, unknown>)
-      .filter(([, v]) => typeof v === 'string' && v.length > 0)
-      .map(([k, v]) => [k, v as string] as [string, string]);
+      .filter(([, v]) => typeof v === 'string' && (v as string).length > 0)
+      .map(([k, v]) => [k, (v as string).split('|').filter(Boolean)] as [string, string[]]);
     return entries.length ? Object.fromEntries(entries) : null;
   }
   if (typeof raw !== 'string') return null;
-  const pairs = raw
-    .split(',')
-    .map(s => s.trim())
-    .filter(Boolean)
-    .map(s => s.split(':').map(x => x.trim()));
-  const out: Record<string, string> = {};
-  for (const [k, v] of pairs) {
-    if (k && v) out[k] = v;
+  const out: Record<string, string[]> = {};
+  for (const pair of raw.split(',').map(s => s.trim()).filter(Boolean)) {
+    const idx = pair.indexOf(':');
+    if (idx < 0) continue;
+    const k = pair.slice(0, idx).trim();
+    const vals = pair.slice(idx + 1).trim().split('|').filter(Boolean);
+    if (k && vals.length) out[k] = vals;
   }
   return Object.keys(out).length ? out : null;
 };
@@ -166,38 +166,107 @@ const changeProductStatus = async (
 // --- Reads --------------------------------------------------------------------
 
 /**
+ * Resolve a category ID to itself plus all active direct children.
+ * Cached for 1 hour (same TTL as the category list endpoint).
+ * Returns null when the category has no children (avoids unnecessary $in query).
+ */
+const resolveChildCategories = async (categoryId: string): Promise<Types.ObjectId[] | null> => {
+  const cacheKey = `categories:children:${categoryId}`;
+  const hit = await cache.get<string[]>(cacheKey);
+  if (hit !== null) {
+    return hit.length ? hit.map(id => new Types.ObjectId(id)) : null;
+  }
+  const children = await CategoryModel.find(
+    { parent: new Types.ObjectId(categoryId), isActive: true },
+    '_id',
+  ).lean();
+  const ids = children.map(c => c._id.toString());
+  await cache.set(cacheKey, ids, 3600);
+  return ids.length ? children.map(c => c._id as Types.ObjectId) : null;
+};
+
+/**
+ * If `query.category` is a parent with children, expand it to include all child IDs
+ * so a click on "Mac" returns MacBook products, "Headphone & Speaker" returns
+ * Earbuds + Speaker, etc.
+ */
+const expandCategoryFilter = async (
+  query: Record<string, unknown>,
+): Promise<Record<string, unknown>> => {
+  if (typeof query.category !== 'string' || !query.category) return query;
+  const childIds = await resolveChildCategories(query.category);
+  if (!childIds) return query;
+  return {
+    ...query,
+    // Store as string array — DB functions convert to ObjectId when needed
+    category: [query.category, ...childIds.map(id => id.toString())],
+  };
+};
+
+/**
  * Public catalog listing.
  * Supports:
  *  - text search via $text (uses `product_text_search` index)
- *  - attribute filter: `?attrs=color:Black,ram:8GB` (joins Variants)
+ *  - variant attribute filter: `?attrs=color:Black|Blue,ram:8GB` (joins Variants)
+ *  - product-level attribute filter: `?attrFilters=os:Android|iOS,nfc:Yes` (matches product.attributes map)
+ *  - category hierarchy: parent category automatically includes child categories
  *  - standard filters, pagination, sort
- *  - 5-minute cache keyed on the query signature
+ *  - 5-minute cache keyed on the resolved query signature
  */
 type ProductListResult = { data: unknown[]; meta: TMeta };
 
 const getAllProducts = async (
   query: Record<string, unknown>,
 ): Promise<ProductListResult> => {
-  const cacheKey = `products:list:${hashParams(query)}`;
+  // Expand parent category → [parent, ...children] before cache lookup so the
+  // cache key reflects the actual IDs being queried.
+  const resolvedQuery = await expandCategoryFilter(query);
+
+  const cacheKey = `products:list:${hashParams(resolvedQuery)}`;
   const hit = await cache.get<ProductListResult>(cacheKey);
   if (hit) return hit;
 
-  const attrs = parseAttrsQuery(query.attrs);
+  const attrs = parseAttrsQuery(resolvedQuery.attrs);
+  const productLevelAttrs = parseAttrsQuery(resolvedQuery.attrFilters);
   const result: ProductListResult = attrs
-    ? await listWithVariantFilter(query, attrs)
-    : await listSimple(query);
+    ? await listWithVariantFilter(resolvedQuery, attrs, productLevelAttrs)
+    : await listSimple(resolvedQuery, productLevelAttrs);
 
   await cache.set(cacheKey, result, 300);
   return result;
 };
 
+/** Apply category filter to baseFilter, supporting both single ID and array ($in). */
+const applyCategoryFilter = (
+  baseFilter: Record<string, unknown>,
+  category: unknown,
+): void => {
+  if (typeof category === 'string' && category) {
+    baseFilter.category = new Types.ObjectId(category);
+  } else if (Array.isArray(category) && (category as string[]).length > 0) {
+    baseFilter.category = { $in: (category as string[]).map(id => new Types.ObjectId(id)) };
+  }
+};
+
 const listSimple = async (
   query: Record<string, unknown>,
+  productLevelAttrs: Record<string, string[]> | null = null,
 ): Promise<ProductListResult> => {
   const baseFilter: Record<string, unknown> = { status: 'approved', isDeleted: false };
-  const hasSearch = typeof query.searchTerm === 'string' && query.searchTerm.trim().length > 0;
 
-  const builder = new QueryBuilder(ProductModel.find(baseFilter), query);
+  // Extract category here so QueryBuilder never sees it (it can't handle $in arrays)
+  const { category, ...queryWithoutCategory } = query;
+  applyCategoryFilter(baseFilter, category);
+
+  // Product-level attribute filters (e.g. os, nfc, network) applied directly
+  if (productLevelAttrs) {
+    for (const [k, v] of Object.entries(productLevelAttrs)) {
+      baseFilter[`attributes.${k}`] = v.length === 1 ? v[0] : { $in: v };
+    }
+  }
+
+  const hasSearch = typeof queryWithoutCategory.searchTerm === 'string' && queryWithoutCategory.searchTerm.trim().length > 0;
+  const builder = new QueryBuilder(ProductModel.find(baseFilter), queryWithoutCategory);
   if (hasSearch) builder.search(['name', 'brand', 'tags', 'shortDescription']);
   builder.filter().sort().fields().paginate();
 
@@ -209,13 +278,15 @@ const listSimple = async (
 };
 
 /**
- * Aggregation pipeline for attribute-based variant filtering.
- * Finds products that have at least one active variant whose `options` match ALL
- * of the requested attribute key/value pairs.
+ * Aggregation pipeline for attribute-based filtering.
+ * For products WITH variants: finds those that have at least one active variant
+ * whose `options` match ALL requested attrs (supports multi-value OR logic per key).
+ * For products WITHOUT variants: matches against the product-level `attributes` map.
  */
 const listWithVariantFilter = async (
   query: Record<string, unknown>,
-  attrs: Record<string, string>,
+  attrs: Record<string, string[]>,
+  productLevelAttrs: Record<string, string[]> | null = null,
 ): Promise<ProductListResult> => {
   const page = Math.max(1, Number(query.page) || 1);
   const limit = Math.min(100, Number(query.limit) || 12);
@@ -227,13 +298,12 @@ const listWithVariantFilter = async (
 
   const baseMatch: Record<string, unknown> = { status: 'approved', isDeleted: false };
 
-  // Pass-through simple filters (brand, category, etc.)
-  const passthrough = ['brand', 'category'];
-  for (const k of passthrough) {
-    if (typeof query[k] === 'string' && (query[k] as string).length > 0) {
-      baseMatch[k] = k === 'category' ? new Types.ObjectId(query[k] as string) : query[k];
-    }
+  // Brand pass-through
+  if (typeof query.brand === 'string' && query.brand) {
+    baseMatch.brand = query.brand;
   }
+  // Category: supports both single string ID and array (expanded hierarchy)
+  applyCategoryFilter(baseMatch, query.category);
   if (query.minPrice || query.maxPrice) {
     const range: Record<string, number> = {};
     if (query.minPrice) range.$gte = Number(query.minPrice);
@@ -241,10 +311,26 @@ const listWithVariantFilter = async (
     baseMatch.basePrice = range;
   }
 
-  // Compose per-attribute $eq conditions in Mongo aggregation syntax
-  const variantConditions = Object.entries(attrs).map(
-    ([k, v]) => ({ $eq: [`$options.${k}`, v] }),
+  // Product-level attribute filters (e.g. os, nfc, network) applied to baseMatch
+  // so they filter ALL products regardless of variant status
+  if (productLevelAttrs) {
+    for (const [k, v] of Object.entries(productLevelAttrs)) {
+      baseMatch[`attributes.${k}`] = v.length === 1 ? v[0] : { $in: v };
+    }
+  }
+
+  // Variant conditions: each attr uses $eq (single value) or $in (multiple values)
+  const variantConditions = Object.entries(attrs).map(([k, v]) =>
+    v.length === 1
+      ? { $eq: [`$options.${k}`, v[0]] }
+      : { $in: [`$options.${k}`, v] },
   );
+
+  // Product-level attribute conditions (for non-variant products)
+  const productAttrMatch: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(attrs)) {
+    productAttrMatch[`attributes.${k}`] = v.length === 1 ? v[0] : { $in: v };
+  }
 
   const commonPipeline: PipelineStage[] = [
     { $match: baseMatch },
@@ -269,7 +355,17 @@ const listWithVariantFilter = async (
         as: '_matches',
       },
     },
-    { $match: { '_matches.0': { $exists: true } } },
+    // Products with a matching variant OR any product whose product.attributes match
+    // (handles attrs that are in the schema as isVariantOption but not used as variant
+    //  dimensions by specific products — e.g. RAM stored as a product attr on phones)
+    {
+      $match: {
+        $or: [
+          { '_matches.0': { $exists: true } },
+          productAttrMatch,
+        ],
+      },
+    },
   ];
 
   const dataPipeline: PipelineStage[] = [

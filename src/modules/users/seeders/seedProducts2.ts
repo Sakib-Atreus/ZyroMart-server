@@ -169,17 +169,17 @@ export const seed2 = async () => {
     basePrice: 44999, compareAtPrice: 49999, currency: 'BDT',
     hasVariants: true,
     variantOptions: [
-      { key: 'color', label: 'Color', values: ['Awesome Olive', 'Awesome Navy', 'Awesome White', 'Awesome Graphite'] },
+      { key: 'color', label: 'Color', values: ['Green', 'Blue', 'White', 'Black'] },
       { key: 'storage', label: 'Storage', values: ['128GB', '256GB'] },
     ],
-    attributes: new Map([['os', 'Android 15'], ['processor', 'Exynos 1580'], ['ram', '8GB'], ['display', 'Super AMOLED 120Hz'], ['displaySize', '6.7'], ['rearCamera', '50MP OIS + 12MP + 5MP'], ['battery', '5000'], ['network', '5G'], ['nfc', 'Yes']]),
+    attributes: new Map([['os', 'Android'], ['processor', 'Exynos 1580'], ['ram', '8GB'], ['display', 'Super AMOLED 120Hz'], ['displaySize', '6.7'], ['rearCamera', '50MP OIS + 12MP + 5MP'], ['battery', '5000'], ['network', '5G'], ['nfc', 'Yes']]),
     tags: ['samsung', 'galaxy', 'a56', '5g', 'mid-range', 'exynos'],
     warranty: '1 Year Official Warranty', status: 'approved',
     totalSold: 189, averageRating: 4.4, reviewCount: 76, emiOptions: EMI_MID,
   }, { upsert: true, new: true });
   await upsertVariants(a56._id, 'A565G',
-    [{ key: 'color', values: ['Awesome Olive', 'Awesome Navy', 'Awesome White', 'Awesome Graphite'] }, { key: 'storage', values: ['128GB', '256GB'] }],
-    44999, { 'Awesome Olive+256GB': 49999, 'Awesome Navy+256GB': 49999, 'Awesome White+256GB': 49999, 'Awesome Graphite+256GB': 49999 });
+    [{ key: 'color', values: ['Green', 'Blue', 'White', 'Black'] }, { key: 'storage', values: ['128GB', '256GB'] }],
+    44999, { 'Green+256GB': 49999, 'Blue+256GB': 49999, 'White+256GB': 49999, 'Black+256GB': 49999 });
 
   // 2. Apple iPhone 16e — color × storage
   const ip16eProd = await ProductModel.findOneAndUpdate({ slug: 'apple-iphone-16e' }, {
@@ -195,7 +195,7 @@ export const seed2 = async () => {
       { key: 'color', label: 'Color', values: ['Black', 'White'] },
       { key: 'storage', label: 'Storage', values: ['128GB', '256GB', '512GB'] },
     ],
-    attributes: new Map([['os', 'iOS 18'], ['processor', 'Apple A16 Bionic'], ['ram', '8GB'], ['display', 'Super Retina XDR OLED'], ['displaySize', '6.1'], ['rearCamera', '48MP Fusion'], ['battery', '3279'], ['network', '5G'], ['nfc', 'Yes']]),
+    attributes: new Map([['os', 'iOS'], ['processor', 'Apple A16 Bionic'], ['ram', '8GB'], ['display', 'Super Retina XDR OLED'], ['displaySize', '6.1'], ['rearCamera', '48MP Fusion'], ['battery', '3279'], ['network', '5G'], ['nfc', 'Yes']]),
     tags: ['apple', 'iphone', '16e', 'ios', '5g', 'a16'],
     warranty: '1 Year Apple Warranty', status: 'approved',
     totalSold: 245, averageRating: 4.6, reviewCount: 112, emiOptions: EMI_HIGH,
@@ -215,19 +215,19 @@ export const seed2 = async () => {
     basePrice: 144999, compareAtPrice: 156000, currency: 'BDT',
     hasVariants: true,
     variantOptions: [
-      { key: 'color', label: 'Color', values: ['Black', 'White', 'Ultramarine', 'Teal'] },
+      { key: 'color', label: 'Color', values: ['Black', 'White', 'Blue', 'Green'] },
       { key: 'storage', label: 'Storage', values: ['128GB', '256GB', '512GB'] },
     ],
-    attributes: new Map([['os', 'iOS 18'], ['processor', 'Apple A18'], ['ram', '8GB'], ['display', 'Super Retina XDR OLED'], ['displaySize', '6.6'], ['rearCamera', '48MP Fusion + 12MP Ultra Wide'], ['battery', '3000'], ['network', '5G'], ['nfc', 'Yes']]),
+    attributes: new Map([['os', 'iOS'], ['processor', 'Apple A18'], ['ram', '8GB'], ['display', 'Super Retina XDR OLED'], ['displaySize', '6.6'], ['rearCamera', '48MP Fusion + 12MP Ultra Wide'], ['battery', '3000'], ['network', '5G'], ['nfc', 'Yes']]),
     tags: ['apple', 'iphone', 'air', 'thin', 'a18', 'ios'],
     warranty: '1 Year Apple Warranty', status: 'approved', isOnlineExclusive: true,
     totalSold: 178, averageRating: 4.7, reviewCount: 89, emiOptions: EMI_HIGH,
   }, { upsert: true, new: true });
   await upsertVariants(ipAirProd._id, 'IPAIR',
-    [{ key: 'color', values: ['Black', 'White', 'Ultramarine', 'Teal'] }, { key: 'storage', values: ['128GB', '256GB', '512GB'] }],
+    [{ key: 'color', values: ['Black', 'White', 'Blue', 'Green'] }, { key: 'storage', values: ['128GB', '256GB', '512GB'] }],
     144999, {
-      'Black+256GB': 164999, 'White+256GB': 164999, 'Ultramarine+256GB': 164999, 'Teal+256GB': 164999,
-      'Black+512GB': 194999, 'White+512GB': 194999, 'Ultramarine+512GB': 194999, 'Teal+512GB': 194999,
+      'Black+256GB': 164999, 'White+256GB': 164999, 'Blue+256GB': 164999, 'Green+256GB': 164999,
+      'Black+512GB': 194999, 'White+512GB': 194999, 'Blue+512GB': 194999, 'Green+512GB': 194999,
     });
 
   // ══════════════════════════════════════════════════════════════════════════
@@ -364,7 +364,7 @@ export const seed2 = async () => {
     basePrice: 119999, compareAtPrice: 132000, currency: 'BDT',
     hasVariants: true,
     variantOptions: [{ key: 'color', label: 'Band Color', values: ['Black', 'White', 'Orange Trail'] }],
-    attributes: new Map([['os', 'watchOS 11'], ['display', 'Always-On Retina LTPO2'], ['battery', 'Up to 72 hours (low power)'], ['waterproof', '100m Water Resistant'], ['gps', 'Yes'], ['size', '49mm']]),
+    attributes: new Map([['os', 'watchOS'], ['display', 'Always-On Retina LTPO2'], ['battery', 'Up to 72 hours (low power)'], ['waterproof', '100m Water Resistant'], ['gps', 'Yes'], ['size', '49mm']]),
     tags: ['apple', 'watch', 'ultra', 'titanium', 'gps', 'rugged'],
     warranty: '1 Year Apple Warranty', status: 'approved', isOnlineExclusive: true,
     totalSold: 62, averageRating: 4.9, reviewCount: 34, emiOptions: EMI_PREMIUM,
@@ -385,7 +385,7 @@ export const seed2 = async () => {
       { key: 'size', label: 'Size', values: ['40mm', '44mm'] },
       { key: 'color', label: 'Color', values: ['Starlight', 'Midnight', 'Silver'] },
     ],
-    attributes: new Map([['os', 'watchOS 11'], ['display', 'Retina LTPO2'], ['battery', 'Up to 18 hours'], ['waterproof', '50m Water Resistant'], ['gps', 'Yes']]),
+    attributes: new Map([['os', 'watchOS'], ['display', 'Retina LTPO2'], ['battery', 'Up to 18 hours'], ['waterproof', '50m Water Resistant'], ['gps', 'Yes']]),
     tags: ['apple', 'watch', 'se', 'affordable', 'smartwatch'],
     warranty: '1 Year Apple Warranty', status: 'approved',
     totalSold: 267, averageRating: 4.6, reviewCount: 119, emiOptions: EMI_MID,

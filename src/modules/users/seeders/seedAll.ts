@@ -58,14 +58,14 @@ const PHONE_ATTRS = [
   { key: 'os', label: 'OS', group: 'General', type: 'enum' as const, options: ['Android', 'iOS', 'HarmonyOS'], required: true, filterable: true },
   { key: 'color', label: 'Color', group: 'Design', type: 'enum' as const, options: ['Black', 'White', 'Blue', 'Gold', 'Green', 'Silver', 'Titanium'], isVariantOption: true, filterable: true },
   { key: 'storage', label: 'Storage', group: 'Performance', type: 'enum' as const, options: ['64GB', '128GB', '256GB', '512GB', '1TB'], isVariantOption: true, filterable: true },
-  { key: 'ram', label: 'RAM', group: 'Performance', type: 'enum' as const, options: ['4GB', '6GB', '8GB', '12GB'], isVariantOption: true, filterable: true },
+  { key: 'ram', label: 'RAM', group: 'Performance', type: 'enum' as const, options: ['4GB', '6GB', '8GB', '12GB'], filterable: true },
   { key: 'processor', label: 'Processor', group: 'Performance', type: 'string' as const },
   { key: 'display', label: 'Display', group: 'Display', type: 'string' as const },
   { key: 'displaySize', label: 'Display Size', group: 'Display', type: 'string' as const, unit: 'inches' },
   { key: 'rearCamera', label: 'Rear Camera', group: 'Camera', type: 'string' as const },
   { key: 'battery', label: 'Battery', group: 'Battery', type: 'string' as const, unit: 'mAh' },
-  { key: 'network', label: 'Network', group: 'Connectivity', type: 'string' as const },
-  { key: 'nfc', label: 'NFC', group: 'Connectivity', type: 'enum' as const, options: ['Yes', 'No'] },
+  { key: 'network', label: 'Network', group: 'Connectivity', type: 'enum' as const, options: ['4G', '5G'], filterable: true },
+  { key: 'nfc', label: 'NFC', group: 'Connectivity', type: 'enum' as const, options: ['Yes', 'No'], filterable: true },
 ];
 const MAC_ATTRS = [
   { key: 'color', label: 'Color', group: 'Design', type: 'enum' as const, options: ['Space Black', 'Silver', 'Midnight', 'Starlight', 'Sky Blue'], isVariantOption: true, filterable: true },
@@ -88,18 +88,18 @@ const TABLET_ATTRS = [
 ];
 const AUDIO_ATTRS = [
   { key: 'color', label: 'Color', group: 'Design', type: 'enum' as const, options: ['Black', 'White', 'Silver', 'Midnight', 'Beige'], isVariantOption: true, filterable: true },
-  { key: 'anc', label: 'ANC', group: 'Features', type: 'enum' as const, options: ['Yes', 'No'] },
-  { key: 'connectivity', label: 'Connectivity', group: 'Connectivity', type: 'enum' as const, options: ['Bluetooth 5.0', 'Bluetooth 5.3', 'Bluetooth 5.4', 'Wired'] },
+  { key: 'anc', label: 'ANC', group: 'Features', type: 'enum' as const, options: ['Yes', 'No'], filterable: true },
+  { key: 'connectivity', label: 'Connectivity', group: 'Connectivity', type: 'enum' as const, options: ['Bluetooth 5.0', 'Bluetooth 5.3', 'Bluetooth 5.4', 'Wired'], filterable: true },
   { key: 'battery', label: 'Battery Life', group: 'Battery', type: 'string' as const },
-  { key: 'waterproof', label: 'Water Resistance', group: 'Features', type: 'enum' as const, options: ['IPX4', 'IPX5', 'IP67', 'None'] },
+  { key: 'waterproof', label: 'Water Resistance', group: 'Features', type: 'enum' as const, options: ['IPX4', 'IPX5', 'IP67', 'None'], filterable: true },
 ];
 const WATCH_ATTRS = [
   { key: 'color', label: 'Case Color', group: 'Design', type: 'enum' as const, options: ['Black', 'Silver', 'Gold', 'Titanium', 'Pink', 'Rose Gold'], isVariantOption: true, filterable: true },
   { key: 'size', label: 'Case Size', group: 'Design', type: 'enum' as const, options: ['40mm', '41mm', '42mm', '44mm', '45mm', '46mm', '49mm'], isVariantOption: true, filterable: true },
-  { key: 'os', label: 'Platform', group: 'General', type: 'enum' as const, options: ['watchOS', 'Wear OS', 'RTOS'] },
+  { key: 'os', label: 'Platform', group: 'General', type: 'enum' as const, options: ['watchOS', 'Wear OS', 'RTOS'], filterable: true },
   { key: 'battery', label: 'Battery Life', group: 'Battery', type: 'string' as const },
   { key: 'waterproof', label: 'Water Resistance', group: 'Features', type: 'string' as const },
-  { key: 'gps', label: 'GPS', group: 'Features', type: 'enum' as const, options: ['Yes', 'No'] },
+  { key: 'gps', label: 'GPS', group: 'Features', type: 'enum' as const, options: ['Yes', 'No'], filterable: true },
 ];
 
 // ─── CDN images (gadgetandgear.com — confirmed real product images) ───────────
@@ -289,17 +289,17 @@ export const seed = async () => {
     basePrice: 199999, compareAtPrice: 220000, currency: 'BDT',
     hasVariants: true,
     variantOptions: [
-      { key: 'color', label: 'Color', values: ['Titanium Black', 'Titanium Silver Blue', 'Titanium White'] },
+      { key: 'color', label: 'Color', values: ['Black', 'Silver', 'White'] },
       { key: 'storage', label: 'Storage', values: ['256GB', '512GB'] },
     ],
-    attributes: new Map([['os', 'Android 15'], ['processor', 'Snapdragon 8 Elite'], ['ram', '12GB'], ['display', 'Dynamic AMOLED 2X'], ['displaySize', '6.9'], ['rearCamera', '200MP + 50MP + 10MP + 10MP'], ['battery', '5000'], ['network', '5G'], ['nfc', 'Yes']]),
+    attributes: new Map([['os', 'Android'], ['processor', 'Snapdragon 8 Elite'], ['ram', '12GB'], ['display', 'Dynamic AMOLED 2X'], ['displaySize', '6.9'], ['rearCamera', '200MP + 50MP + 10MP + 10MP'], ['battery', '5000'], ['network', '5G'], ['nfc', 'Yes']]),
     tags: ['samsung', 's26', 'ultra', '5g', 'flagship', 'spen'],
     warranty: '1 Year Official Warranty', status: 'approved', isOnlineExclusive: true,
     totalSold: 210, averageRating: 4.8, reviewCount: 86, emiOptions: EMI_PREMIUM,
   }, { upsert: true, new: true });
   await upsertVariants(s26ultra._id, 'S26U',
-    [{ key: 'color', values: ['Titanium Black', 'Titanium Silver Blue', 'Titanium White'] }, { key: 'storage', values: ['256GB', '512GB'] }],
-    199999, { 'Titanium Black+512GB': 224999, 'Titanium Silver Blue+512GB': 224999, 'Titanium White+512GB': 224999 });
+    [{ key: 'color', values: ['Black', 'Silver', 'White'] }, { key: 'storage', values: ['256GB', '512GB'] }],
+    199999, { 'Black+512GB': 224999, 'Silver+512GB': 224999, 'White+512GB': 224999 });
 
   // 2. Apple iPhone 17 Pro Max — phones | color × storage variants
   const ip17pm = await ProductModel.findOneAndUpdate({ slug: 'apple-iphone-17-pro-max' }, {
@@ -312,19 +312,19 @@ export const seed = async () => {
     basePrice: 217499, compareAtPrice: 249999, currency: 'BDT',
     hasVariants: true,
     variantOptions: [
-      { key: 'color', label: 'Color', values: ['Desert Titanium', 'Black Titanium', 'White Titanium', 'Natural Titanium'] },
+      { key: 'color', label: 'Color', values: ['Gold', 'Black', 'White', 'Silver'] },
       { key: 'storage', label: 'Storage', values: ['256GB', '512GB', '1TB'] },
     ],
-    attributes: new Map([['os', 'iOS 18'], ['processor', 'Apple A19 Pro'], ['ram', '8GB'], ['display', 'Super Retina XDR OLED ProMotion'], ['displaySize', '6.9'], ['rearCamera', '48MP + 48MP Ultra Wide + 12MP 5x Telephoto'], ['battery', '4685'], ['network', '5G'], ['nfc', 'Yes']]),
+    attributes: new Map([['os', 'iOS'], ['processor', 'Apple A19 Pro'], ['ram', '8GB'], ['display', 'Super Retina XDR OLED ProMotion'], ['displaySize', '6.9'], ['rearCamera', '48MP + 48MP Ultra Wide + 12MP 5x Telephoto'], ['battery', '4685'], ['network', '5G'], ['nfc', 'Yes']]),
     tags: ['iphone', 'apple', '17', 'pro', 'max', '5g', 'ios'],
     warranty: '1 Year Apple Warranty', status: 'approved', isOnlineExclusive: true,
     totalSold: 334, averageRating: 4.9, reviewCount: 148, emiOptions: EMI_PREMIUM,
   }, { upsert: true, new: true });
   await upsertVariants(ip17pm._id, 'IP17PM',
-    [{ key: 'color', values: ['Desert Titanium', 'Black Titanium', 'White Titanium', 'Natural Titanium'] }, { key: 'storage', values: ['256GB', '512GB', '1TB'] }],
+    [{ key: 'color', values: ['Gold', 'Black', 'White', 'Silver'] }, { key: 'storage', values: ['256GB', '512GB', '1TB'] }],
     217499, {
-      'Desert Titanium+512GB': 242499, 'Black Titanium+512GB': 242499, 'White Titanium+512GB': 242499, 'Natural Titanium+512GB': 242499,
-      'Desert Titanium+1TB': 267499, 'Black Titanium+1TB': 267499, 'White Titanium+1TB': 267499, 'Natural Titanium+1TB': 267499,
+      'Gold+512GB': 242499, 'Black+512GB': 242499, 'White+512GB': 242499, 'Silver+512GB': 242499,
+      'Gold+1TB': 267499, 'Black+1TB': 267499, 'White+1TB': 267499, 'Silver+1TB': 267499,
     });
 
   // 3. Apple MacBook Air 13" M5 — macbook | color × RAM × storage variants
@@ -394,16 +394,16 @@ export const seed = async () => {
     hasVariants: true,
     variantOptions: [
       { key: 'size', label: 'Size', values: ['42mm', '46mm'] },
-      { key: 'color', label: 'Color', values: ['Rose Gold', 'Jet Black', 'Silver', 'Starlight'] },
+      { key: 'color', label: 'Color', values: ['Rose Gold', 'Black', 'Silver', 'Gold'] },
     ],
-    attributes: new Map([['os', 'watchOS 11'], ['display', 'Always-On Retina LTPO OLED'], ['battery', 'Up to 18 hours'], ['waterproof', '50m Water Resistant'], ['gps', 'Yes'], ['compatibility', 'iPhone XS or later with iOS 18']]),
+    attributes: new Map([['os', 'watchOS'], ['display', 'Always-On Retina LTPO OLED'], ['battery', 'Up to 18 hours'], ['waterproof', '50m Water Resistant'], ['gps', 'Yes'], ['compatibility', 'iPhone XS or later with iOS 18']]),
     tags: ['apple', 'watch', 'series11', 'smartwatch', 'wearable'],
     warranty: '1 Year Apple Warranty', status: 'approved',
     totalSold: 178, averageRating: 4.8, reviewCount: 91, emiOptions: EMI_HIGH,
   }, { upsert: true, new: true });
   await upsertVariants(aw11._id, 'AW11',
-    [{ key: 'size', values: ['42mm', '46mm'] }, { key: 'color', values: ['Rose Gold', 'Jet Black', 'Silver', 'Starlight'] }],
-    49999, { '46mm+Rose Gold': 54999, '46mm+Jet Black': 54999, '46mm+Silver': 54999, '46mm+Starlight': 54999 });
+    [{ key: 'size', values: ['42mm', '46mm'] }, { key: 'color', values: ['Rose Gold', 'Black', 'Silver', 'Gold'] }],
+    49999, { '46mm+Rose Gold': 54999, '46mm+Black': 54999, '46mm+Silver': 54999, '46mm+Gold': 54999 });
 
   // 6. Samsung Galaxy Watch 8 Classic — watches | size × color variants
   const gw8c = await ProductModel.findOneAndUpdate({ slug: 'samsung-galaxy-watch-8-classic' }, {
@@ -417,16 +417,16 @@ export const seed = async () => {
     hasVariants: true,
     variantOptions: [
       { key: 'size', label: 'Size', values: ['43mm', '47mm'] },
-      { key: 'color', label: 'Color', values: ['Black', 'Silver', 'White Gold'] },
+      { key: 'color', label: 'Color', values: ['Black', 'Silver', 'Gold'] },
     ],
-    attributes: new Map([['os', 'Wear OS 5 + One UI Watch 6'], ['display', 'Super AMOLED'], ['battery', 'Up to 48 hours (43mm)'], ['waterproof', '5ATM + IP68'], ['gps', 'Yes'], ['compatibility', 'Android 11+ with 1.5GB RAM']]),
+    attributes: new Map([['os', 'Wear OS'], ['display', 'Super AMOLED'], ['battery', 'Up to 48 hours (43mm)'], ['waterproof', '5ATM + IP68'], ['gps', 'Yes'], ['compatibility', 'Android 11+ with 1.5GB RAM']]),
     tags: ['samsung', 'galaxy', 'watch8', 'classic', 'smartwatch'],
     warranty: '1 Year Official Warranty', status: 'approved',
     totalSold: 112, averageRating: 4.6, reviewCount: 54, emiOptions: EMI_MID,
   }, { upsert: true, new: true });
   await upsertVariants(gw8c._id, 'GW8C',
-    [{ key: 'size', values: ['43mm', '47mm'] }, { key: 'color', values: ['Black', 'Silver', 'White Gold'] }],
-    31999, { '47mm+Black': 36999, '47mm+Silver': 36999, '47mm+White Gold': 36999 });
+    [{ key: 'size', values: ['43mm', '47mm'] }, { key: 'color', values: ['Black', 'Silver', 'Gold'] }],
+    31999, { '47mm+Black': 36999, '47mm+Silver': 36999, '47mm+Gold': 36999 });
 
   // 7. Apple AirPods Pro 3 — earbuds | color (single) variant
   const app3 = await ProductModel.findOneAndUpdate({ slug: 'apple-airpods-pro-3' }, {
