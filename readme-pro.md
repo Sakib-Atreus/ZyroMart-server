@@ -412,6 +412,57 @@ Each module contains:
 
 ---
 
+## Contributing
+
+Contributions are welcome from authorized collaborators. Please follow the process below to keep the codebase clean and consistent.
+
+### Branching Strategy
+
+```
+main          — production-ready code only
+develop       — integration branch for completed features
+feature/*     — new features (branched from develop)
+fix/*         — bug fixes (branched from develop)
+hotfix/*      — critical production fixes (branched from main)
+```
+
+### Workflow
+
+1. **Fork or branch** — create a branch from `develop` using the naming convention above.
+2. **Write your code** — follow the existing module structure; each new domain should have its own folder under `src/modules/` with model, interface, service, controller, route, and validation files.
+3. **Lint and format** — run `npm run lint:fix` and `npm run prettier:fix` before committing.
+4. **Test your changes** — manually verify affected endpoints using a REST client (Postman, Insomnia, or similar). Include seed data if your changes require new database state.
+5. **Commit clearly** — use short, imperative commit messages:
+   - `feat: add vendor suspension endpoint`
+   - `fix: correct order snapshot price on variant update`
+   - `refactor: extract payment webhook logic into service`
+6. **Open a pull request** — target the `develop` branch. Describe what changed and why, and list any environment variable additions.
+7. **Review** — at least one maintainer approval is required before merging.
+
+### Code Standards
+
+- All new code must be written in TypeScript with proper types — avoid `any`.
+- Validate all incoming request bodies with a Zod schema and the `validateRequest` middleware.
+- Protect routes with the `auth` middleware and specify the required role(s).
+- Business logic belongs in the service layer, not the controller.
+- Do not commit `.env` files, secrets, or generated `dist/` output.
+
+---
+
+## Contact
+
+For questions about this project, integration support, or business enquiries, please reach out through the following channel.
+
+| Type | Details |
+|---|---|
+| **Email** | [your-email@example.com](mailto:your-email@example.com) |
+
+> For bug reports or feature requests related to the codebase, open an issue in the project repository with a clear description, steps to reproduce (if a bug), and any relevant logs or screenshots.
+
+Response time is typically within 1–2 business days.
+
+---
+
 ## License
 
-This project is proprietary. All rights reserved.
+This project is proprietary. All rights reserved. Unauthorized copying, distribution, or modification of this software is strictly prohibited.
