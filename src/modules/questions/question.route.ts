@@ -1,24 +1,42 @@
-import express from "express";
-import { QuestionController } from "./question.controller";
+import express from 'express';
+import auth from '../../middleware/auth';
+import validateRequest from '../../middleware/validateRequest';
+import { USER_ROLE } from '../users/user.constant';
+import { QuestionControllers } from './question.controller';
+import {
+  createQuestionSchema,
+  answerQuestionSchema,
+  questionIdParamsSchema,
+  questionByProductParamsSchema,
+} from './question.validation';
 
 const router = express.Router();
 
-// Route to create a new question (User)
-router.post("/", QuestionController.createQuestion);
+router.get(
+  '/product/:productId',
+  validateRequest(questionByProductParamsSchema),
+  QuestionControllers.listByProduct,
+);
 
-// get all reviews
-router.get('/', QuestionController.getAllQuestions);
+router.post(
+  '/',
+  auth(USER_ROLE.user, USER_ROLE.vendor, USER_ROLE.admin),
+  validateRequest(createQuestionSchema),
+  QuestionControllers.createQuestion,
+);
 
-// Route to get a single question by ID
-router.get('/:questionId', QuestionController.getSingleQuestion); 
+router.post(
+  '/:id/answer',
+  auth(USER_ROLE.vendor, USER_ROLE.admin),
+  validateRequest(answerQuestionSchema),
+  QuestionControllers.answerQuestion,
+);
 
-// Route to get questions by product ID
-router.get("/:productId", QuestionController.getQuestionsByProduct);
-
-// Route to answer a question (Admin only)
-router.put("/:id/answer", QuestionController.answerQuestion);
-
-// Route to delete a question by ID
-router.delete('/:questionId', QuestionController.deleteQuestion);
+router.delete(
+  '/:id',
+  auth(USER_ROLE.user, USER_ROLE.vendor, USER_ROLE.admin),
+  validateRequest(questionIdParamsSchema),
+  QuestionControllers.deleteQuestion,
+);
 
 export const QuestionRoute = router;

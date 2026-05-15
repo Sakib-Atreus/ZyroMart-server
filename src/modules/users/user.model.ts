@@ -15,6 +15,8 @@ const userSchema = new Schema<TUser>(
       type: String,
       required: true,
       unique: true,
+      lowercase: true,
+      trim: true,
     },
     password: {
       type: String,
@@ -25,10 +27,13 @@ const userSchema = new Schema<TUser>(
       type: String,
       required: true,
       unique: true,
+      trim: true,
     },
     role: {
       type: String,
       enum: nameEnum,
+      default: 'user',
+      required: true,
     },
     address: {
       type: String,

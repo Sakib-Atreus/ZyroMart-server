@@ -7,31 +7,34 @@ import { TUserRole } from '../modules/users/user.interface';
 import User from '../modules/users/user.model';
 
 const auth = (...userRoles: TUserRole[]) => {
-  return catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+  return catchAsync(async (req: Request, _res: Response, next: NextFunction) => {
     const token = req.headers.authorization?.split(' ')[1];
-    // check is token came from client
     if (!token) {
       throw new AppError(401, 'You are not authorized');
     }
-    const decoded = jwt.verify(
-      token,
-      config.jwt_access_secret as string,
-    ) as JwtPayload;
 
-    // Check if user exists and is logged in
+    // 401 — any JWT verification failure means the session is invalid
+    let decoded: JwtPayload;
+    try {
+      decoded = jwt.verify(token, config.jwt_access_secret as string) as JwtPayload;
+    } catch {
+      throw new AppError(401, 'Invalid or expired token');
+    }
+
     const user = await User.findById(decoded.id);
-    if (!user) {
-      throw new AppError(404, 'User not found');
+    if (!user || user.isDeleted) {
+      throw new AppError(401, 'Session invalid — user no longer exists');
     }
     if (!user.isLoggedIn) {
       throw new AppError(401, 'User is not logged in');
     }
 
-    // check user role
-    if (userRoles && !userRoles.includes(decoded?.role)) {
-      throw new AppError(401, 'You have no access to this route');
+    // 403 — authenticated but not allowed to access this specific resource
+    if (userRoles.length > 0 && !userRoles.includes(decoded.role as TUserRole)) {
+      throw new AppError(403, 'You do not have access to this resource');
     }
-    req.user = decoded as JwtPayload;
+
+    req.user = decoded as typeof req.user;
     next();
   });
 };
