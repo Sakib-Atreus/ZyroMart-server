@@ -1,18 +1,16 @@
-import { Types } from "mongoose";
+import { Types } from 'mongoose';
 
-export type VariantOptions = {
-    color?: string;
-    ram?: string;
-    storage?: string;
-    capacity?: string;
-    connectivity?: string;
-};
-
-export type Variant = {
-    productId: Types.ObjectId; // Reference to Product ID
-    variantOptions: VariantOptions;
-    price: number;
-    quantity: number;
-    inStock: boolean;
-    sku: string;
-};
+export interface IVariant {
+  product: Types.ObjectId;
+  sku: string;
+  options: Map<string, string>;
+  optionsHash: string;
+  price: number;
+  compareAtPrice?: number;
+  stock: number;
+  reservedStock: number;
+  images?: string[];
+  isActive: boolean;
+  weight?: number;
+  dimensions?: { l: number; w: number; h: number };
+}

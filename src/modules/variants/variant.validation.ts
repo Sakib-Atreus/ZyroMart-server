@@ -1,30 +1,61 @@
 import { z } from 'zod';
+import { Types } from 'mongoose';
 
-// Variant Options validation
-export const variantOptionsValidationSchema = z.object({
-  color: z.string().optional(),
-  ram: z.string().optional(),
-  storage: z.string().optional(),
-  capacity: z.string().optional(),
-  connectivity: z.string().optional(),
+const objectId = z
+  .string()
+  .refine(v => Types.ObjectId.isValid(v), { message: 'Invalid ObjectId' });
+
+const variantBody = z.object({
+  product: objectId,
+  sku: z.string().min(3).max(60),
+  options: z.record(z.string()).refine(o => Object.keys(o).length > 0, {
+    message: 'At least one option is required',
+  }),
+  price: z.number().positive(),
+  compareAtPrice: z.number().positive().optional(),
+  stock: z.number().int().nonnegative(),
+  images: z.array(z.string().url()).optional(),
+  isActive: z.boolean().optional().default(true),
+  weight: z.number().positive().optional(),
+  dimensions: z
+    .object({ l: z.number().positive(), w: z.number().positive(), h: z.number().positive() })
+    .optional(),
 });
 
-// Variant validation schema (for creating a variant)
-export const variantValidationSchema = z.object({
-  productId: z.string().min(24, 'Product ID must be a valid MongoDB ObjectId'),
-  options: variantOptionsValidationSchema,
-  price: z.number().min(0, 'Price must be a positive number'),
-  quantity: z.number().min(0, 'Quantity must be a positive number'),
-  inStock: z.boolean(),
-  sku: z.string().min(1, 'SKU is required'),
+export const createVariantSchema = z.object({ body: variantBody });
+
+export const bulkVariantsSchema = z.object({
+  body: z.object({
+    product: objectId,
+    defaults: z.object({
+      price: z.number().positive(),
+      compareAtPrice: z.number().positive().optional(),
+      stock: z.number().int().nonnegative().default(0),
+    }),
+    overrides: z
+      .array(
+        z.object({
+          options: z.record(z.string()),
+          price: z.number().positive().optional(),
+          compareAtPrice: z.number().positive().optional(),
+          stock: z.number().int().nonnegative().optional(),
+          sku: z.string().optional(),
+        }),
+      )
+      .optional()
+      .default([]),
+  }),
 });
 
-// Partial variant validation schema (for updating a variant)
-export const partialVariantValidationSchema = z.object({
-  options: variantOptionsValidationSchema.optional(),
-  price: z.number().min(0, 'Price must be a positive number').optional(),
-  quantity: z.number().min(0, 'Quantity must be a positive number').optional(),
-  inStock: z.boolean().optional(),
-  sku: z.string().min(1, 'SKU is required').optional(),
+export const updateVariantSchema = z.object({
+  body: variantBody.partial().omit({ product: true }),
+  params: z.object({ id: objectId }),
 });
 
+export const variantIdParamsSchema = z.object({
+  params: z.object({ id: objectId }),
+});
+
+export const variantByProductParamsSchema = z.object({
+  params: z.object({ productId: objectId }),
+});

@@ -1,12 +1,18 @@
-import { JwtPayload } from 'jsonwebtoken'
-import { FilterQuery } from 'mongoose'
-import { Product } from '../modules/products/product.interface'
+import { JwtPayload } from 'jsonwebtoken';
+import { FilterQuery } from 'mongoose';
+
+export type TAuthPayload = JwtPayload & {
+  id: string;
+  role: 'admin' | 'user' | 'vendor';
+  userEmail: string;
+};
 
 declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Express {
     interface Request {
-      user: JwtPayload
-      filterQuery?: FilterQuery<Product>;
+      user: TAuthPayload;
+      filterQuery?: FilterQuery<unknown>;
     }
   }
 }

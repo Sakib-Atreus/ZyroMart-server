@@ -1,5 +1,7 @@
-export const nameEnum = ['admin', 'user']
+export const nameEnum = ['admin', 'user', 'vendor'] as const;
+
 export const USER_ROLE = {
   admin: 'admin',
   user: 'user',
-} as const
+  vendor: 'vendor',
+} as const;

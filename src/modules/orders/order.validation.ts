@@ -1,21 +1,42 @@
 import { z } from 'zod';
+import { Types } from 'mongoose';
 
-const orderValidationSchema = z.object({
-  email: z
-    .string()
-    .min(5, { message: 'Email must be at least 5 characters' })
-    .max(50, { message: 'Email cannot exceed 50 characters' })
-    .email({ message: 'Invalid email format' }),
-  productId: z.string(),
-  price: z
-    .number()
-    .min(1, { message: 'Price must be at least 1' })
-    .max(999999, { message: 'Price cannot exceed 999999' }),
-  quantity: z
-    .number()
-    .min(1, { message: 'Quantity must be at least 1' })
-    .max(999, { message: 'Quantity cannot exceed 1000' }),
+const objectId = z
+  .string()
+  .refine(v => Types.ObjectId.isValid(v), { message: 'Invalid ObjectId' });
+
+const addressSchema = z.object({
+  fullName: z.string().min(2).max(80),
+  line1: z.string().min(3).max(200),
+  line2: z.string().max(200).optional(),
+  city: z.string().min(2).max(60),
+  country: z.string().min(2).max(60),
+  postalCode: z.string().max(20).optional(),
+  phone: z.string().min(5).max(20),
 });
 
-// we can export this validation model for using another file
-export default orderValidationSchema;
+export const createOrderSchema = z.object({
+  body: z.object({
+    shippingAddress: addressSchema,
+    billingAddress: addressSchema.optional(),
+    paymentMethod: z.enum(['stripe', 'cod', 'sslcommerz']),
+    discount: z.number().nonnegative().optional(),
+  }),
+});
+
+export const orderIdParamsSchema = z.object({
+  params: z.object({ id: objectId }),
+});
+
+export const updateOrderStatusSchema = z.object({
+  body: z.object({
+    status: z.enum(['processing', 'shipped', 'delivered', 'cancelled']),
+    note: z.string().optional(),
+  }),
+  params: z.object({ id: objectId }),
+});
+
+export const cancelOrderSchema = z.object({
+  body: z.object({ reason: z.string().max(500).optional() }).optional(),
+  params: z.object({ id: objectId }),
+});

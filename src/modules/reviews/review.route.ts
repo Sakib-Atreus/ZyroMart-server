@@ -1,22 +1,51 @@
 import express from 'express';
+import auth from '../../middleware/auth';
+import validateRequest from '../../middleware/validateRequest';
+import { USER_ROLE } from '../users/user.constant';
 import { ReviewControllers } from './review.controller';
+import {
+  createReviewSchema,
+  updateReviewSchema,
+  reviewIdParamsSchema,
+  reviewByProductParamsSchema,
+} from './review.validation';
 
 const router = express.Router();
 
-// this all routes call the controllers function to :
-// create or post a new review
-router.post('/', ReviewControllers.createReview);
+// Public: list reviews for a product (with summary for the detail page)
+router.get(
+  '/product/:productId',
+  validateRequest(reviewByProductParamsSchema),
+  ReviewControllers.listByProduct,
+);
 
-// get all reviews
-router.get('/', ReviewControllers.getAllReviews);
+// Authenticated: fetch my own review for a product (to drive the "edit" UI)
+router.get(
+  '/product/:productId/me',
+  auth(USER_ROLE.user, USER_ROLE.vendor, USER_ROLE.admin),
+  validateRequest(reviewByProductParamsSchema),
+  ReviewControllers.getMyReviewForProduct,
+);
 
-// get a single review
-router.get('/:reviewId', ReviewControllers.getSingleReview);
+router.post(
+  '/',
+  auth(USER_ROLE.user, USER_ROLE.vendor, USER_ROLE.admin),
+  validateRequest(createReviewSchema),
+  ReviewControllers.createReview,
+);
 
-// delete a single review
-router.delete('/:reviewId', ReviewControllers.deleteReview);
+router.patch(
+  '/:id',
+  auth(USER_ROLE.user, USER_ROLE.vendor, USER_ROLE.admin),
+  validateRequest(updateReviewSchema),
+  ReviewControllers.updateReview,
+);
 
-// update a single review
-router.put('/:reviewId', ReviewControllers.updateReview);
+router.delete(
+  '/:id',
+  auth(USER_ROLE.user, USER_ROLE.vendor, USER_ROLE.admin),
+  validateRequest(reviewIdParamsSchema),
+  ReviewControllers.deleteReview,
+);
 
 export const ReviewRoute = router;

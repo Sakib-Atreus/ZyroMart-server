@@ -1,23 +1,50 @@
 import express from 'express';
-import { VariantControllers } from './variant.controller';
 import auth from '../../middleware/auth';
+import validateRequest from '../../middleware/validateRequest';
 import { USER_ROLE } from '../users/user.constant';
+import { VariantControllers } from './variant.controller';
+import {
+  createVariantSchema,
+  bulkVariantsSchema,
+  updateVariantSchema,
+  variantIdParamsSchema,
+  variantByProductParamsSchema,
+} from './variant.validation';
 
 const router = express.Router();
 
-// Create a new variant
-router.post('/', VariantControllers.createVariant);
+router.get(
+  '/product/:productId',
+  validateRequest(variantByProductParamsSchema),
+  VariantControllers.getVariantsForProduct,
+);
 
-// Get all variants
-router.get('/', VariantControllers.getAllVariants);
+router.post(
+  '/',
+  auth(USER_ROLE.vendor, USER_ROLE.admin),
+  validateRequest(createVariantSchema),
+  VariantControllers.createVariant,
+);
 
-// Get a single variant by ID
-router.get('/:variantId', VariantControllers.getSingleVariant);
+router.post(
+  '/bulk',
+  auth(USER_ROLE.vendor, USER_ROLE.admin),
+  validateRequest(bulkVariantsSchema),
+  VariantControllers.generateBulkVariants,
+);
 
-// Delete a variant
-router.delete('/:variantId', auth(USER_ROLE.admin), VariantControllers.deleteVariant);
+router.patch(
+  '/:id',
+  auth(USER_ROLE.vendor, USER_ROLE.admin),
+  validateRequest(updateVariantSchema),
+  VariantControllers.updateVariant,
+);
 
-// Update a variant
-router.put('/:variantId', auth(USER_ROLE.admin), VariantControllers.updateVariant);
+router.delete(
+  '/:id',
+  auth(USER_ROLE.vendor, USER_ROLE.admin),
+  validateRequest(variantIdParamsSchema),
+  VariantControllers.deleteVariant,
+);
 
 export const VariantRoute = router;

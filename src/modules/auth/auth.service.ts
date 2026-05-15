@@ -8,7 +8,25 @@ import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
 
 const registeredUserIntoDB = async (payload: TUser) => {
-  const result = await User.create(payload);
+  // Normalize before lookup so "Test@Mail.com" and "test@mail.com" collide
+  const email = String(payload.email || '').trim().toLowerCase();
+  const phone = String(payload.phone || '').trim();
+
+  // Specific, per-field checks so the caller knows exactly what clashed
+  const existing = await User.findOne({ $or: [{ email }, { phone }] })
+    .select('email phone')
+    .lean();
+
+  if (existing) {
+    if (existing.email === email) {
+      throw new AppError(409, `Email '${email}' is already registered`);
+    }
+    if (existing.phone === phone) {
+      throw new AppError(409, `Phone '${phone}' is already registered`);
+    }
+  }
+
+  const result = await User.create({ ...payload, email, phone });
   return result;
 };
 
