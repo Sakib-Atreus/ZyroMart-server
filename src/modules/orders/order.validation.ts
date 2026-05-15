@@ -19,7 +19,7 @@ export const createOrderSchema = z.object({
   body: z.object({
     shippingAddress: addressSchema,
     billingAddress: addressSchema.optional(),
-    paymentMethod: z.enum(['stripe', 'cod']),
+    paymentMethod: z.enum(['stripe', 'cod', 'sslcommerz']),
     discount: z.number().nonnegative().optional(),
   }),
 });

@@ -89,7 +89,7 @@ const OrderSchema = new Schema<IOrder>(
     },
     paymentMethod: {
       type: String,
-      enum: ['stripe', 'cod'],
+      enum: ['stripe', 'cod', 'sslcommerz'],
       required: true,
     },
 
@@ -97,6 +97,12 @@ const OrderSchema = new Schema<IOrder>(
       sessionId: { type: String, index: true },
       paymentIntentId: { type: String },
       chargeId: { type: String },
+    },
+
+    sslcommerz: {
+      tranId: { type: String, index: true, sparse: true },
+      valId: { type: String },
+      bankTranId: { type: String },
     },
 
     statusHistory: { type: [StatusHistorySchema], default: [] },

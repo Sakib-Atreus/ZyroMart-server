@@ -12,9 +12,13 @@ const app: Application = express();
 
 app.use(helmet());
 
-const allowedOrigins = config.client_url
-  ? [config.client_url]
-  : ['http://localhost:5173'];
+// SSLC callback POSTs arrive with Origin: sandbox.sslcommerz.com (sandbox)
+// or securepay.sslcommerz.com (live) — both must be explicitly allowed.
+const allowedOrigins = [
+  config.client_url || 'http://localhost:5173',
+  'https://sandbox.sslcommerz.com',
+  'https://securepay.sslcommerz.com',
+];
 
 app.use(
   cors({
@@ -43,8 +47,10 @@ app.post(
   PaymentControllers.stripeWebhook,
 );
 
-// Global JSON parser for all other routes
+// Global parsers for all other routes
+// express.urlencoded is required for SSL Commerce callback POSTs
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 app.use('/api/v1/auth', authLimiter);
 app.use('/api/v1', routes);

@@ -15,6 +15,10 @@ export default {
   stripe_secret_key: process.env.STRIPE_SECRET_KEY,
   stripe_webhook_secret: process.env.STRIPE_WEBHOOK_SECRET,
   client_url: process.env.CLIENT_URL || 'http://localhost:5173',
+  server_url: process.env.SERVER_URL || 'http://localhost:5000',
   default_currency: process.env.DEFAULT_CURRENCY || 'BDT',
   redis_url: process.env.REDIS_URL, // optional; if unset, caching is disabled
+  sslc_store_id: process.env.SSLC_STORE_ID || 'testbox',
+  sslc_store_password: process.env.SSLC_STORE_PASSWORD || 'qwerty',
+  sslc_is_live: process.env.SSLC_IS_LIVE === 'true',
 };

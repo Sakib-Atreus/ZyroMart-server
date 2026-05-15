@@ -41,6 +41,18 @@ const hydrateCart = async (userId: string) => {
     );
   });
 
+  // If stale items were found, remove them from the DB cart so order creation
+  // never sees them and throws "no longer available".
+  if (validItems.length < cart.items.length) {
+    const validVariantIds = validItems.map(
+      i => (i.variant as unknown as { _id: Types.ObjectId })._id,
+    );
+    CartModel.updateOne(
+      { user: userId },
+      { $pull: { items: { variant: { $nin: validVariantIds } } } },
+    ).exec().catch(() => undefined);
+  }
+
   let subtotal = 0;
   const items = validItems.map(item => {
     const variant = item.variant as unknown as {

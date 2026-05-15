@@ -10,7 +10,7 @@ export type TOrderStatus =
   | 'refunded';
 
 export type TPaymentStatus = 'unpaid' | 'paid' | 'failed' | 'refunded';
-export type TPaymentMethod = 'stripe' | 'cod';
+export type TPaymentMethod = 'stripe' | 'cod' | 'sslcommerz';
 
 export interface IAddress {
   fullName: string;
@@ -70,6 +70,12 @@ export interface IOrder {
     sessionId?: string;
     paymentIntentId?: string;
     chargeId?: string;
+  };
+
+  sslcommerz?: {
+    tranId?: string;
+    valId?: string;
+    bankTranId?: string;
   };
 
   statusHistory: IStatusHistoryEntry[];
