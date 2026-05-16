@@ -7,11 +7,13 @@
     "start:prod": "node ./dist/server.js",
     "start:dev": "ts-node-dev --respawn --transpile-only src/server.ts",
     "build": "tsc",
+    "build:prod": "npm install --include=dev && tsc",
     "lint": "npx eslint src --ignore-pattern .ts",
     "lint:fix": "npx eslint src --fix",
     "prettier": "prettier --ignore-path .gitignore --write \"./src/**/*.+(js|ts|json)\"",
     "prettier:fix": "npx prettier --write src",
     "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "concurrently \"npx tsc --watch\" \"nodemon -q dist/server.js\"",
     "seed": "ts-node --transpile-only src/modules/users/seeders/seedAll.ts",
     "seed2": "ts-node --transpile-only src/modules/users/seeders/seedProducts2.ts",
     "seed3": "ts-node --transpile-only src/modules/users/seeders/seedProducts3.ts"
