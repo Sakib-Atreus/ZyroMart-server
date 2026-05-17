@@ -58,6 +58,14 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/api/v1/auth', authLimiter);
 app.use('/api/v1', routes);
 
+app.get("/health", (_req, res) => {
+  res.status(200).json({
+    success: true,
+    message: "ZyroMart Server is running...",
+    timestamp: new Date(),
+  });
+});
+
 app.get('/', (_req: Request, res: Response) => {
   res.send('Welcome to ZyroMart E-commerce API');
 });
