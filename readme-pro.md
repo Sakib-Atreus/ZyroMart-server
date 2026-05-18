@@ -1,12 +1,20 @@
 # ZyroMart — Backend API
 
-A production-ready, multi-vendor e-commerce REST API built with **Node.js**, **Express**, and **TypeScript**. Supports role-based access control, dual payment gateways, real-time chat, and a fully modular architecture.
+![Node.js](https://img.shields.io/badge/Node.js-v18%2B-339933?style=flat-square&logo=node.js&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?style=flat-square&logo=typescript&logoColor=white)
+![Express](https://img.shields.io/badge/Express-4.x-000000?style=flat-square&logo=express&logoColor=white)
+![MongoDB](https://img.shields.io/badge/MongoDB-Mongoose-47A248?style=flat-square&logo=mongodb&logoColor=white)
+![License](https://img.shields.io/badge/License-Proprietary-red?style=flat-square)
+
+A production-ready, multi-vendor e-commerce REST API built with **Node.js**, **Express**, and **TypeScript**. Handles authentication, product catalog management, order processing, dual payment gateways (Stripe + SSLCommerz), real-time messaging, and analytics — all through a versioned, modular REST API.
+
+> **Part of the ZyroMart full-stack project.** See the [Frontend Repository](../ZyroMart-client/readme-pro.md) for the React client.
 
 ---
 
 ## Table of Contents
 
-- [Overview](#overview)
+- [Key Highlights](#key-highlights)
 - [Tech Stack](#tech-stack)
 - [Architecture](#architecture)
 - [Features](#features)
@@ -15,12 +23,22 @@ A production-ready, multi-vendor e-commerce REST API built with **Node.js**, **E
 - [API Reference](#api-reference)
 - [Project Structure](#project-structure)
 - [Scripts](#scripts)
+- [Contributing](#contributing)
 
 ---
 
-## Overview
+## Key Highlights
 
-ZyroMart's backend powers a full-featured multi-vendor marketplace. It handles authentication, product catalog management, order processing, multi-gateway payments (Stripe and SSL Commerce), vendor lifecycle management, analytics dashboards, and in-app messaging — all exposed through a versioned REST API at `/api/v1`.
+These are the design decisions that make this backend production-worthy:
+
+- **Feature-module architecture** — every business domain is fully self-contained (model, interface, service, controller, route, validation) under `src/modules/`. New features can be added without touching existing code.
+- **Dual payment gateway** — Stripe handles international card payments with webhook signature verification; SSLCommerz handles Bangladeshi banks and mobile money with server-to-server IPN callbacks.
+- **Order snapshots** — product name, price, and vendor details are captured at purchase time so historical orders remain accurate even after catalog changes.
+- **Three-tier RBAC** — `admin`, `vendor`, and `user` roles enforced at the middleware level. Vendors only ever see their own products and orders.
+- **Stateless JWT auth** with rate limiting (100 req / 15 min per IP) on all auth endpoints via `express-rate-limit`.
+- **Auto-seeded admin** — the admin account is created automatically on first startup from environment variables; no manual DB step required.
+- **Zod validation on every endpoint** — all request bodies are validated before reaching the controller, with consistent error responses.
+- **PDF generation** for invoices/reports via PDFKit.
 
 ---
 
@@ -28,14 +46,14 @@ ZyroMart's backend powers a full-featured multi-vendor marketplace. It handles a
 
 | Layer | Technology |
 |---|---|
-| Runtime | Node.js |
+| Runtime | Node.js v18+ |
 | Framework | Express.js 4.x |
 | Language | TypeScript 5.x |
 | Database | MongoDB + Mongoose ODM |
 | Authentication | JSON Web Tokens (JWT) |
 | Validation | Zod |
 | Password Hashing | bcrypt |
-| Payment – International | Stripe (with webhook support) |
+| Payment – International | Stripe (checkout sessions + webhook) |
 | Payment – Local (BD) | SSLCommerz (IPN-based) |
 | Caching | Redis via ioredis (optional) |
 | Security | Helmet, CORS, express-rate-limit |
@@ -49,15 +67,23 @@ ZyroMart's backend powers a full-featured multi-vendor marketplace. It handles a
 The server follows a **feature-module architecture**. Each business domain lives in its own self-contained folder under `src/modules/` with its own model, interface, service, controller, route, and validation files. A single route aggregator at `src/routes/index.ts` registers all modules.
 
 ```
-Request → Express App → Rate Limiter → Auth Middleware
-       → Route → Validate (Zod) → Controller → Service → MongoDB
-       → Global Error Handler → Response
+Request
+  → Express App
+  → Rate Limiter
+  → Auth Middleware (JWT verify + role check)
+  → Route
+  → validateRequest (Zod schema)
+  → Controller
+  → Service (business logic)
+  → MongoDB via Mongoose
+  → Global Error Handler
+  → JSON Response
 ```
 
 **Design decisions:**
-- Stateless authentication via short-lived JWTs
-- Role-based access control (RBAC) with three roles: `admin`, `vendor`, `user`
-- Order snapshots: product name, price, and vendor details are captured at purchase time so historical orders remain accurate even after catalog changes
+- Stateless authentication via short-lived JWTs — no server-side session storage
+- Role-based access control (RBAC): `admin`, `vendor`, `user`
+- Order snapshots: product name, price, and vendor details captured at purchase time
 - Webhook-driven payment confirmation for Stripe; server-to-server IPN for SSLCommerz
 - Admin user is seeded automatically on first server start
 
@@ -87,7 +113,7 @@ Request → Express App → Rate Limiter → Auth Middleware
 
 ### Cart & Wishlist
 - Persistent server-side cart with variant-level line items
-- Wishlist with add/remove/clear operations
+- Wishlist with add / remove / clear operations
 
 ### Orders & Payments
 - Order creation with full item snapshots
@@ -117,8 +143,8 @@ Request → Express App → Rate Limiter → Auth Middleware
 - Node.js v18+
 - MongoDB (local or Atlas)
 - Redis (optional — for caching)
-- A Stripe account (for international payments)
-- An SSLCommerz account (for local Bangladeshi payments)
+- Stripe account (for international payments)
+- SSLCommerz account (for Bangladeshi payments)
 
 ### Installation
 
@@ -140,20 +166,20 @@ cp .env.example .env
 # Development (with hot reload)
 npm run start:dev
 
-# Production
+# Production build + start
 npm run build
 npm run start:prod
 ```
 
-The server starts on the port defined in your `.env` (default: `5000`).
+The server starts on the port defined in `.env` (default: `5000`).
 
-On first startup, the admin user defined in `ADMIN_EMAIL` / `ADMIN_PASSWORD` is automatically seeded into the database.
+On first startup, the admin account defined in `ADMIN_EMAIL` / `ADMIN_PASSWORD` is automatically seeded into the database.
 
 ---
 
 ## Environment Variables
 
-Create a `.env` file at the project root with the following:
+Create a `.env` file at the project root:
 
 ```env
 # Server
@@ -348,8 +374,8 @@ All endpoints are prefixed with `/api/v1`.
 ```
 ZyroMart-server/
 ├── src/
-│   ├── server.ts              # Entry point (DB connect, admin seed, listen)
-│   ├── app.ts                 # Express app (middleware setup)
+│   ├── server.ts              # Entry point — DB connect, admin seed, listen
+│   ├── app.ts                 # Express app — middleware setup, route registration
 │   ├── config/
 │   │   └── index.ts           # Environment variable config
 │   ├── routes/
@@ -381,16 +407,16 @@ ZyroMart-server/
 └── .eslintrc.json
 ```
 
-Each module contains:
+Each module follows this consistent structure:
 
 ```
 {module}/
-├── {module}.model.ts       # Mongoose schema & model
-├── {module}.interface.ts   # TypeScript types & interfaces
-├── {module}.service.ts     # Business logic
-├── {module}.controller.ts  # HTTP request handlers
-├── {module}.route.ts       # Express router
-└── {module}.validation.ts  # Zod schemas
+├── {module}.model.ts        # Mongoose schema & model
+├── {module}.interface.ts    # TypeScript types & interfaces
+├── {module}.service.ts      # Business logic
+├── {module}.controller.ts   # HTTP request handlers
+├── {module}.route.ts        # Express router
+└── {module}.validation.ts   # Zod request schemas
 ```
 
 ---
@@ -414,52 +440,36 @@ Each module contains:
 
 ## Contributing
 
-Contributions are welcome from authorized collaborators. Please follow the process below to keep the codebase clean and consistent.
-
 ### Branching Strategy
 
 ```
-main          — production-ready code only
-develop       — integration branch for completed features
-feature/*     — new features (branched from develop)
-fix/*         — bug fixes (branched from develop)
-hotfix/*      — critical production fixes (branched from main)
+main        — production-ready code only
+develop     — integration branch for completed features
+feature/*   — new features (branched from develop)
+fix/*       — bug fixes (branched from develop)
+hotfix/*    — critical production fixes (branched from main)
 ```
 
 ### Workflow
 
-1. **Fork or branch** — create a branch from `develop` using the naming convention above.
-2. **Write your code** — follow the existing module structure; each new domain should have its own folder under `src/modules/` with model, interface, service, controller, route, and validation files.
-3. **Lint and format** — run `npm run lint:fix` and `npm run prettier:fix` before committing.
-4. **Test your changes** — manually verify affected endpoints using a REST client (Postman, Insomnia, or similar). Include seed data if your changes require new database state.
-5. **Commit clearly** — use short, imperative commit messages:
+1. Branch from `develop` using the naming convention above.
+2. Follow the existing module structure — each new domain gets its own folder under `src/modules/` with model, interface, service, controller, route, and validation files.
+3. Run `npm run lint:fix` and `npm run prettier:fix` before committing.
+4. Verify affected endpoints manually with a REST client (Postman or Insomnia).
+5. Use clear, imperative commit messages:
    - `feat: add vendor suspension endpoint`
    - `fix: correct order snapshot price on variant update`
    - `refactor: extract payment webhook logic into service`
-6. **Open a pull request** — target the `develop` branch. Describe what changed and why, and list any environment variable additions.
-7. **Review** — at least one maintainer approval is required before merging.
+6. Open a pull request targeting `develop`. Describe what changed and list any new environment variables.
+7. At least one maintainer approval is required before merging.
 
 ### Code Standards
 
-- All new code must be written in TypeScript with proper types — avoid `any`.
-- Validate all incoming request bodies with a Zod schema and the `validateRequest` middleware.
-- Protect routes with the `auth` middleware and specify the required role(s).
+- All new code in TypeScript with proper types — avoid `any`.
+- Validate all request bodies with a Zod schema via `validateRequest` middleware.
+- Protect all routes with the `auth` middleware and specify required role(s).
 - Business logic belongs in the service layer, not the controller.
-- Do not commit `.env` files, secrets, or generated `dist/` output.
-
----
-
-## Contact
-
-For questions about this project, integration support, or business enquiries, please reach out through the following channel.
-
-| Type | Details |
-|---|---|
-| **Email** | [your-email@example.com](mailto:your-email@example.com) |
-
-> For bug reports or feature requests related to the codebase, open an issue in the project repository with a clear description, steps to reproduce (if a bug), and any relevant logs or screenshots.
-
-Response time is typically within 1–2 business days.
+- Never commit `.env` files, secrets, or `dist/` output.
 
 ---
 
