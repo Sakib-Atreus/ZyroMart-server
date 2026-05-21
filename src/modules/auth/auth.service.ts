@@ -36,7 +36,7 @@ const registeredUserIntoDB = async (payload: TUser) => {
 
   // Generate OTP and persist it, then fire the email without blocking the response
   const otp = generateOtp();
-  const otpExpiry = new Date(Date.now() + 10 * 60 * 1000);
+  const otpExpiry = new Date(Date.now() + 5 * 60 * 1000);
 
   await User.findByIdAndUpdate(result._id, { otp: hashOtp(otp), otpExpiry });
 
@@ -93,12 +93,12 @@ const sendOtp = async (email: string): Promise<null> => {
   if (user.isVerified) throw new AppError(400, 'Email is already verified');
 
   // Prevent spamming — enforce a 60-second delay between sends
-  if (user.otpExpiry && user.otpExpiry.getTime() - Date.now() > 9 * 60 * 1000) {
+  if (user.otpExpiry && user.otpExpiry.getTime() - Date.now() > 4 * 60 * 1000) {
     throw new AppError(429, 'Please wait before requesting another OTP');
   }
 
   const otp = generateOtp();
-  const otpExpiry = new Date(Date.now() + 10 * 60 * 1000);
+  const otpExpiry = new Date(Date.now() + 5 * 60 * 1000);
 
   await User.findByIdAndUpdate(user._id, { otp: hashOtp(otp), otpExpiry });
   await sendOtpEmail(email, otp, user.name);

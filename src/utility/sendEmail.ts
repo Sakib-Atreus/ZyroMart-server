@@ -40,7 +40,7 @@ export const sendOtpEmail = async (to: string, otp: string, name: string): Promi
                     <p style="margin:0 0 8px;color:#374151;font-size:16px;">Hi <strong>${name}</strong>,</p>
                     <p style="margin:0 0 28px;color:#6b7280;font-size:14px;line-height:1.6;">
                       Use the verification code below to complete your ZyroMart registration.
-                      This code is valid for <strong>10 minutes</strong>.
+                      This code is valid for <strong>5 minutes</strong>.
                     </p>
 
                     <!-- OTP Box -->
