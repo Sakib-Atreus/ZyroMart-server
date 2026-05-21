@@ -11,6 +11,9 @@ export type TUser = {
   loggedInTime?: Date;
   loggedOutTime?: Date;
   isDeleted?: boolean;
+  isVerified?: boolean;
+  otp?: string;
+  otpExpiry?: Date;
 };
 
 export type TUserRole = keyof typeof USER_ROLE;

@@ -29,4 +29,16 @@ router.post(
 
 router.post('/logout', auth(USER_ROLE.admin, USER_ROLE.user), AuthControllers.logoutUser);
 
+router.post(
+  '/send-otp',
+  validateRequest(AuthValidations.sendOtpValidationSchema),
+  AuthControllers.sendOtp,
+);
+
+router.post(
+  '/verify-otp',
+  validateRequest(AuthValidations.verifyOtpValidationSchema),
+  AuthControllers.verifyOtp,
+);
+
 export const AuthRoutes = router;

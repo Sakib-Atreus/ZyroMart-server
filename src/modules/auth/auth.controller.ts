@@ -58,9 +58,31 @@ const logoutUser = catchAsync(async (req, res) => {
   });
 });
 
+const sendOtp = catchAsync(async (req, res) => {
+  await AuthServices.sendOtp(req.body.email);
+  sendResponse(res, {
+    success: true,
+    statusCode: 200,
+    message: 'OTP sent to your email',
+    data: null,
+  });
+});
+
+const verifyOtp = catchAsync(async (req, res) => {
+  await AuthServices.verifyOtp(req.body.email, req.body.otp);
+  sendResponse(res, {
+    success: true,
+    statusCode: 200,
+    message: 'Email verified successfully',
+    data: null,
+  });
+});
+
 export const AuthControllers = {
   registeredUser,
   loginUser,
+  sendOtp,
+  verifyOtp,
   changePassword,
   logoutUser,
 }
