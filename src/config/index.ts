@@ -21,4 +21,6 @@ export default {
   sslc_store_id: process.env.SSLC_STORE_ID || 'testbox',
   sslc_store_password: process.env.SSLC_STORE_PASSWORD || 'qwerty',
   sslc_is_live: process.env.SSLC_IS_LIVE === 'true',
+  email_user: process.env.EMAIL_USER,
+  email_pass: process.env.EMAIL_PASS,
 };

@@ -14,7 +14,22 @@ const changePasswordValidationSchema = z.object({
   }),
 });
 
+const sendOtpValidationSchema = z.object({
+  body: z.object({
+    email: z.string().email({ message: 'Valid email is required' }),
+  }),
+});
+
+const verifyOtpValidationSchema = z.object({
+  body: z.object({
+    email: z.string().email({ message: 'Valid email is required' }),
+    otp: z.string().length(6, { message: 'OTP must be 6 digits' }).regex(/^\d+$/, { message: 'OTP must be numeric' }),
+  }),
+});
+
 export const AuthValidations = {
   loginUserValidationSchema,
   changePasswordValidationSchema,
+  sendOtpValidationSchema,
+  verifyOtpValidationSchema,
 }

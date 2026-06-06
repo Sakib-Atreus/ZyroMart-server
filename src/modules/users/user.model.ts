@@ -43,6 +43,9 @@ const userSchema = new Schema<TUser>(
     loggedInTime: { type: Date },
     loggedOutTime: { type: Date },
     isDeleted: { type: Boolean, default: false },
+    isVerified: { type: Boolean, default: false },
+    otp: { type: String, select: false },
+    otpExpiry: { type: Date },
   },
   { 
     versionKey: false,
@@ -64,6 +67,8 @@ userSchema.pre('save', async function (next) {
 userSchema.methods.toJSON = function () {
   const obj = this.toObject();
   delete obj.password;
+  delete obj.otp;
+  delete obj.otpExpiry;
   return obj;
 };
 
