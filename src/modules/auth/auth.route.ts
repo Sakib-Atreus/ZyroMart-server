@@ -27,7 +27,7 @@ router.post(
   AuthControllers.changePassword,
 );
 
-router.post('/logout', auth(USER_ROLE.admin, USER_ROLE.user), AuthControllers.logoutUser);
+router.post('/logout', auth(USER_ROLE.admin, USER_ROLE.user, USER_ROLE.vendor), AuthControllers.logoutUser);
 
 router.post(
   '/send-otp',
