@@ -4,7 +4,7 @@
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?style=flat-square&logo=typescript&logoColor=white)
 ![Express](https://img.shields.io/badge/Express-4.x-000000?style=flat-square&logo=express&logoColor=white)
 ![MongoDB](https://img.shields.io/badge/MongoDB-Mongoose-47A248?style=flat-square&logo=mongodb&logoColor=white)
-![License](https://img.shields.io/badge/License-Proprietary-red?style=flat-square)
+![License](https://img.shields.io/badge/License-All%20Rights%20Reserved-red?style=flat-square)
 
 A production-ready, multi-vendor e-commerce REST API built with **Node.js**, **Express**, and **TypeScript**. Handles authentication, product catalog management, order processing, dual payment gateways (Stripe + SSLCommerz), real-time messaging, and analytics — all through a versioned, modular REST API.
 
@@ -24,6 +24,7 @@ A production-ready, multi-vendor e-commerce REST API built with **Node.js**, **E
 - [Project Structure](#project-structure)
 - [Scripts](#scripts)
 - [Contributing](#contributing)
+- [Contact](#contact)
 
 ---
 
@@ -93,6 +94,7 @@ Request
 
 ### Authentication & Users
 - JWT-based signup, login, and logout
+- Email OTP verification — account is locked until the user verifies their email (OTP valid for 5 minutes, resend rate-limited to 60 seconds)
 - Password change with current-password verification
 - Role-based protected routes (`admin`, `vendor`, `user`)
 - Rate limiting on all auth endpoints (100 requests / 15 min per IP)
@@ -216,6 +218,9 @@ REDIS_URL=redis://localhost:6379
 
 # Currency
 DEFAULT_CURRENCY=
+
+# Email — Resend API (https://resend.com)
+RESEND_API_KEY=re_xxxxxxxxxxxxxxxx
 ```
 
 ---
@@ -231,7 +236,9 @@ All endpoints are prefixed with `/api/v1`.
 | POST | `/auth/signup` | Register a new user | Public |
 | POST | `/auth/login` | Login and receive JWT | Public |
 | POST | `/auth/logout` | Invalidate session | User |
-| PATCH | `/auth/change-password` | Update password | User |
+| POST | `/auth/send-otp` | Send OTP to email | Public |
+| POST | `/auth/verify-otp` | Verify OTP and activate account | Public |
+| POST | `/auth/change-password` | Update password | User |
 
 ### Users
 
@@ -473,6 +480,22 @@ hotfix/*    — critical production fixes (branched from main)
 
 ---
 
+## Contact
+
+For questions about this project, integration support, or business enquiries, please reach out through the following channel.
+
+| Type | Details |
+|---|---|
+| **Email** | [sakibmia0718@gmail.com](mailto:sakibmia0718@gmail.com) |
+
+> For bug reports or feature requests related to the codebase, open an issue in the project repository with a clear description, steps to reproduce (if a bug), and any relevant screenshots or logs.
+
+Response time is typically within 1–2 business days.
+
+---
+
 ## License
 
-This project is proprietary. All rights reserved. Unauthorized copying, distribution, or modification of this software is strictly prohibited.
+Copyright © 2025 MD. Sakib Mia. All Rights Reserved.
+
+You may not copy, clone, or redistribute this project without written permission. Contributions via pull request are welcome. See the [LICENSE](./LICENSE) file for full terms or contact [sakibmia0718@gmail.com](mailto:sakibmia0718@gmail.com) to request permission.
