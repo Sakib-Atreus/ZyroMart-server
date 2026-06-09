@@ -23,4 +23,5 @@ export default {
   sslc_is_live: process.env.SSLC_IS_LIVE === 'true',
   email_user: process.env.EMAIL_USER,
   email_pass: process.env.EMAIL_PASS,
+  resend_api_key: process.env.RESEND_API_KEY,
 };

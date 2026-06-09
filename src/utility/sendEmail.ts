@@ -1,19 +1,13 @@
-import nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 import config from '../config';
 
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: config.email_user as string,
-    pass: config.email_pass as string,
-  },
-});
+const resend = new Resend(config.resend_api_key as string);
 
 export const sendOtpEmail = async (to: string, otp: string, name: string): Promise<void> => {
   const year = new Date().getFullYear();
 
-  await transporter.sendMail({
-    from: `"ZyroMart" <${config.email_user}>`,
+  const { error } = await resend.emails.send({
+    from: 'ZyroMart <onboarding@resend.dev>',
     to,
     subject: 'Your ZyroMart Verification Code',
     html: `
@@ -74,4 +68,9 @@ export const sendOtpEmail = async (to: string, otp: string, name: string): Promi
       </html>
     `,
   });
+
+  if (error) {
+    console.error('[OTP email failed]', to, error.message);
+    throw new Error(error.message);
+  }
 };
