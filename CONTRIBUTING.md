@@ -7,7 +7,7 @@ Thank you for your interest in contributing! All contributions — bug fixes, ne
 1. **Fork** the repository on GitHub
 2. **Clone** your fork locally
    ```bash
-   git clone https://github.com/your-username/ZyroMart-server
+   git clone https://github.com/sakib-atreus/ZyroMart-server
    cd ZyroMart-server
    ```
 3. **Install** dependencies
