@@ -4,7 +4,7 @@
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?style=flat-square&logo=typescript&logoColor=white)
 ![Express](https://img.shields.io/badge/Express-4.x-000000?style=flat-square&logo=express&logoColor=white)
 ![MongoDB](https://img.shields.io/badge/MongoDB-Mongoose-47A248?style=flat-square&logo=mongodb&logoColor=white)
-![License](https://img.shields.io/badge/License-All%20Rights%20Reserved-red?style=flat-square)
+![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)
 
 A production-ready, multi-vendor e-commerce REST API built with **Node.js**, **Express**, and **TypeScript**. Handles authentication, product catalog management, order processing, dual payment gateways (Stripe + SSLCommerz), real-time messaging, and analytics — all through a versioned, modular REST API.
 
@@ -496,6 +496,8 @@ Response time is typically within 1–2 business days.
 
 ## License
 
-Copyright © 2025 MD. Sakib Mia. All Rights Reserved.
+This project is licensed under the **MIT License** — see the [LICENSE](./LICENSE) file for details.
 
-You may not copy, clone, or redistribute this project without written permission. Contributions via pull request are welcome. See the [LICENSE](./LICENSE) file for full terms or contact [sakibmia0718@gmail.com](mailto:sakibmia0718@gmail.com) to request permission.
+Copyright © 2025 MD. Sakib Mia
+
+While this project is open source, direct copying or cloning to create a competing or identical product is discouraged. If you find it useful, please contribute back via pull request instead of forking and rebranding.
