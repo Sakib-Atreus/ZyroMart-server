@@ -6,7 +6,7 @@ import User from '../users/user.model';
 import { TLoginUser } from './auth.interface';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
-import { sendOtpEmail } from '../../utility/sendEmail';
+import { sendOtpEmail, sendPasswordResetEmail } from '../../utility/sendEmail';
 
 const generateOtp = (): string =>
   Math.floor(100000 + Math.random() * 900000).toString();
@@ -40,8 +40,8 @@ const registeredUserIntoDB = async (payload: TUser) => {
 
   await User.findByIdAndUpdate(result._id, { otp: hashOtp(otp), otpExpiry });
 
-  sendOtpEmail(result.email, otp, result.name).catch(() => {
-    // Email failure is non-fatal — user can request a resend from the UI
+  sendOtpEmail(result.email, otp, result.name).catch((err) => {
+    console.error('[OTP send failed during signup]', err?.message);
   });
 
   return result;
@@ -161,6 +161,53 @@ const logOutUser = async (userId: string) => {
   return null;
 };
 
+const forgotPassword = async (email: string): Promise<null> => {
+  const user = await User.findOne({ email }).select('name email');
+  if (!user) throw new AppError(404, 'No account found with this email');
+
+  const rawToken = crypto.randomBytes(32).toString('hex');
+  const hashedToken = crypto.createHash('sha256').update(rawToken).digest('hex');
+  const expiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+  await User.findByIdAndUpdate(user._id, {
+    resetPasswordToken: hashedToken,
+    resetPasswordExpiry: expiry,
+  });
+
+  const resetLink = `${config.client_url}/reset-password?token=${rawToken}`;
+
+  sendPasswordResetEmail(user.email, resetLink, user.name).catch((err) => {
+    console.error('[Reset email failed]', err?.message);
+  });
+
+  return null;
+};
+
+const resetPassword = async (rawToken: string, newPassword: string): Promise<null> => {
+  const hashedToken = crypto.createHash('sha256').update(rawToken).digest('hex');
+
+  const user = await User.findOne({ resetPasswordToken: hashedToken }).select(
+    '+resetPasswordToken resetPasswordExpiry',
+  );
+
+  if (!user || !user.resetPasswordExpiry) {
+    throw new AppError(400, 'Invalid or expired reset link');
+  }
+
+  if (Date.now() > user.resetPasswordExpiry.getTime()) {
+    throw new AppError(400, 'Reset link has expired. Please request a new one');
+  }
+
+  const hashedPassword = await bcrypt.hash(newPassword, Number(config.bcrypt_salt_rounds));
+
+  await User.findByIdAndUpdate(user._id, {
+    password: hashedPassword,
+    $unset: { resetPasswordToken: 1, resetPasswordExpiry: 1 },
+  });
+
+  return null;
+};
+
 export const AuthServices = {
   registeredUserIntoDB,
   loginUser,
@@ -168,4 +215,6 @@ export const AuthServices = {
   verifyOtp,
   changePassword,
   logOutUser,
+  forgotPassword,
+  resetPassword,
 };

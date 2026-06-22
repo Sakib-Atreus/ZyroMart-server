@@ -14,6 +14,8 @@ export type TUser = {
   isVerified?: boolean;
   otp?: string;
   otpExpiry?: Date;
+  resetPasswordToken?: string;
+  resetPasswordExpiry?: Date;
 };
 
 export type TUserRole = keyof typeof USER_ROLE;

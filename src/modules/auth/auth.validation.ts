@@ -27,9 +27,24 @@ const verifyOtpValidationSchema = z.object({
   }),
 });
 
+const forgotPasswordValidationSchema = z.object({
+  body: z.object({
+    email: z.string().email({ message: 'Valid email is required' }),
+  }),
+});
+
+const resetPasswordValidationSchema = z.object({
+  body: z.object({
+    token: z.string().min(1, { message: 'Token is required' }),
+    newPassword: z.string().min(6, { message: 'Password must be at least 6 characters' }),
+  }),
+});
+
 export const AuthValidations = {
   loginUserValidationSchema,
   changePasswordValidationSchema,
   sendOtpValidationSchema,
   verifyOtpValidationSchema,
+  forgotPasswordValidationSchema,
+  resetPasswordValidationSchema,
 }

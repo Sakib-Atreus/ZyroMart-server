@@ -78,6 +78,26 @@ const verifyOtp = catchAsync(async (req, res) => {
   });
 });
 
+const forgotPassword = catchAsync(async (req, res) => {
+  await AuthServices.forgotPassword(req.body.email);
+  sendResponse(res, {
+    success: true,
+    statusCode: 200,
+    message: 'If this email is registered, a reset link has been sent',
+    data: null,
+  });
+});
+
+const resetPassword = catchAsync(async (req, res) => {
+  await AuthServices.resetPassword(req.body.token, req.body.newPassword);
+  sendResponse(res, {
+    success: true,
+    statusCode: 200,
+    message: 'Password reset successfully',
+    data: null,
+  });
+});
+
 export const AuthControllers = {
   registeredUser,
   loginUser,
@@ -85,4 +105,6 @@ export const AuthControllers = {
   verifyOtp,
   changePassword,
   logoutUser,
+  forgotPassword,
+  resetPassword,
 }

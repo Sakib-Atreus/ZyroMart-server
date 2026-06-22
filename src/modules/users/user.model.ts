@@ -46,6 +46,8 @@ const userSchema = new Schema<TUser>(
     isVerified: { type: Boolean, default: false },
     otp: { type: String, select: false },
     otpExpiry: { type: Date },
+    resetPasswordToken: { type: String, select: false },
+    resetPasswordExpiry: { type: Date },
   },
   { 
     versionKey: false,
