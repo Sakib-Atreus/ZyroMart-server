@@ -10,6 +10,7 @@ import config from './config';
 
 const app: Application = express();
 
+app.set('trust proxy', 1);
 app.use(helmet());
 
 // SSLC callback POSTs arrive with Origin: sandbox.sslcommerz.com (sandbox)
