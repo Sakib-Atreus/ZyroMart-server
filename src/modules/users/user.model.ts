@@ -43,7 +43,7 @@ const userSchema = new Schema<TUser>(
     loggedInTime: { type: Date },
     loggedOutTime: { type: Date },
     isDeleted: { type: Boolean, default: false },
-    isVerified: { type: Boolean, default: false },
+    isVerified: { type: Boolean, default: true },
     otp: { type: String, select: false },
     otpExpiry: { type: Date },
     resetPasswordToken: { type: String, select: false },

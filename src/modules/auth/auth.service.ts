@@ -32,17 +32,7 @@ const registeredUserIntoDB = async (payload: TUser) => {
     }
   }
 
-  const result = await User.create({ ...payload, email, phone, isVerified: false });
-
-  // Generate OTP and persist it, then fire the email without blocking the response
-  const otp = generateOtp();
-  const otpExpiry = new Date(Date.now() + 5 * 60 * 1000);
-
-  await User.findByIdAndUpdate(result._id, { otp: hashOtp(otp), otpExpiry });
-
-  sendOtpEmail(result.email, otp, result.name).catch((err) => {
-    console.error('[OTP send failed during signup]', err?.message);
-  });
+  const result = await User.create({ ...payload, email, phone, isVerified: true });
 
   return result;
 };
