@@ -1,38 +1,24 @@
-import nodemailer from 'nodemailer';
+import axios from 'axios';
 import config from '../config';
 
-const transporter = nodemailer.createTransport({
-  host: config.smtp_host,
-  port: config.smtp_port,
-  secure: config.smtp_port === 465, // SSL on 465, STARTTLS on 587
-  auth: {
-    user: config.email_user,
-    pass: config.email_pass,
-  },
-});
-
-// Verify SMTP connection on server startup so misconfiguration is caught early
-transporter.verify((err) => {
-  if (err) {
-    console.error('[Email] SMTP connection failed:', err.message);
-  } else {
-    console.log('[Email] SMTP ready');
-  }
-});
-
-const sendEmail = async (
-  to: string,
-  subject: string,
-  html: string,
-  text: string,
-): Promise<void> => {
-  await transporter.sendMail({
-    from: config.smtp_from,
-    to,
-    subject,
-    html,
-    text, // plain-text fallback — required to avoid spam filters
-  });
+const sendEmail = async (to: string, toName: string, subject: string, html: string, text: string): Promise<void> => {
+  await axios.post(
+    'https://api.brevo.com/v3/smtp/email',
+    {
+      sender: { name: 'ZyroMart', email: config.brevo_from_email },
+      to: [{ email: to, name: toName }],
+      subject,
+      htmlContent: html,
+      textContent: text,
+    },
+    {
+      headers: {
+        'api-key': config.brevo_api_key,
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+      },
+    },
+  );
 };
 
 export const sendOtpEmail = async (to: string, otp: string, name: string): Promise<void> => {
@@ -90,17 +76,13 @@ export const sendOtpEmail = async (to: string, otp: string, name: string): Promi
 </body>
 </html>`;
 
-  await sendEmail(to, 'Your ZyroMart Verification Code', html, text);
+  await sendEmail(to, name, 'Your ZyroMart Verification Code', html, text);
 };
 
-export const sendPasswordResetEmail = async (
-  to: string,
-  resetLink: string,
-  name: string,
-): Promise<void> => {
+export const sendPasswordResetEmail = async (to: string, resetLink: string, name: string): Promise<void> => {
   const year = new Date().getFullYear();
 
-  const text = `Hi ${name},\n\nWe received a request to reset your ZyroMart password.\n\nReset your password here: ${resetLink}\n\nThis link expires in 10 minutes. If you did not request this, ignore this email — your password will not change.\n\n© ${year} ZyroMart`;
+  const text = `Hi ${name},\n\nWe received a request to reset your ZyroMart password.\n\nReset your password here: ${resetLink}\n\nThis link expires in 10 minutes. If you did not request this, ignore this email.\n\n© ${year} ZyroMart`;
 
   const html = `<!DOCTYPE html>
 <html lang="en">
@@ -156,5 +138,5 @@ export const sendPasswordResetEmail = async (
 </body>
 </html>`;
 
-  await sendEmail(to, 'Reset Your ZyroMart Password', html, text);
+  await sendEmail(to, name, 'Reset Your ZyroMart Password', html, text);
 };
