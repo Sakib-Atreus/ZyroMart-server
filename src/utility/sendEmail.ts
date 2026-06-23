@@ -4,13 +4,11 @@ import config from '../config';
 const transporter = nodemailer.createTransport({
   host: config.smtp_host,
   port: config.smtp_port,
-  secure: false, // STARTTLS on port 587
+  secure: config.smtp_port === 465, // SSL on 465, STARTTLS on 587
   auth: {
     user: config.email_user,
     pass: config.email_pass,
   },
-  pool: true,
-  maxConnections: 3,
 });
 
 // Verify SMTP connection on server startup so misconfiguration is caught early
